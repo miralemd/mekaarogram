@@ -39,12 +39,14 @@ function(
 				type: n.qType,
 				col: depth,
 				isLocked: layout.qHyperCube.qDimensionInfo[depth].qLocked,
+				canExpand: n.qCanExpand && n.qType !== 'A',
+				canCollapse: n.qCanCollapse && n.qType !== 'A',
 				dimensions: dimensions,
 				measures: measures
 			};
 			if ( n.qSubNodes.length ) {
 				ret.children = n.qSubNodes.filter(function( n ) {
-					return n.qType !== "T";
+					return n.qType !== "T" && n.qType !== 'E';
 				} ).map( function( node ) {
 					return nest( node, depth + 1);
 				} ).filter( function() {

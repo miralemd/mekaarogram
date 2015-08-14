@@ -31,6 +31,10 @@ define( [], function () {
 					}
 				}
 			},
+			sorting: {
+				uses: "sorting",
+				component: "pivot-sorting"
+			},
 			settings: {
 				uses: "settings",
 				items: {
@@ -44,6 +48,12 @@ define( [], function () {
 							//	defaultValue: true,
 							//	label: "Show root"
 							//},
+							expanded: {
+								ref: "qHyperCubeDef.qAlwaysFullyExpanded",
+								type: "boolean",
+								translation: "properties.pivot.fullyExpanded",
+								defaultValue: false
+							},
 							adaptiveStrokeWidth: {
 								type: "boolean",
 								ref: "adaptiveStrokeWidth",

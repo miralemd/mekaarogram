@@ -8,6 +8,9 @@
 text {
 	fill: #666;
 }
+.node.node-expandable {
+	font-weight: bold;
+}
 
 .node circle {
 	fill: #CDECD8;

@@ -1,22 +1,23 @@
 /*globals define, console*/
 define( [
-	"qvangular",
-	"./properties",
-	"objects.extension/controller",
-	"objects.extension/default-view",
+	'qvangular',
+	'./properties',
+	'objects.extension/controller',
+	'objects.extension/default-view',
 	'objects.extension/object-conversion',
 	'objects.extension/default-selection-toolbar',
-	"objects.backend-api/stacked-api",
-	"objects.utils/event-utils",
-	"./selection",
-	
+	'objects.backend-api/pivot-api',
+	'objects.utils/event-utils',
+	'./selection',
+	'extensions.qliktech/pivot-table/properties/pivot-sorting/pivot-sorting',
+	'client.property-panel/components/components',
 	'./tooltip',
 	'./data-processor',
-	"text!./defs.html",
-	"text!./style.css",
+	'text!./defs.html',
+	'text!./style.css',
 
-	"./d3",
-	"objects.views/charts/tooltip/chart-tooltip-service"
+	'./d3',
+	'objects.views/charts/tooltip/chart-tooltip-service'
 ],
 function(
 	qvangular,
@@ -25,9 +26,11 @@ function(
 	DefaultView,
 	objectConversion,
 	DefaultSelectionToolbar,
-	StackedApi,
+	PivotApi,
 	EventUtils,
 	selections,
+	pivotSorting,
+	components,
 	tooltip,
 	dataProcessor,
 	defs,
@@ -127,7 +130,7 @@ function(
 	};
 
 	var linearTextAnchorFn = function ( d ) {
-		return d._children || d.children ? "end" : "start";
+		return d.canCollapse || d.canExpand || d.children ? "end" : "start";
 	};
 
 	var colorFn = function ( d ) {
@@ -135,8 +138,20 @@ function(
 	};
 
 	var strokeColorFn = function ( d ) {
-		return d._children ? d3.rgb( colorFn( d ) ).darker().toString() : '';
+		return d.canCollapse || d.canExpand ? d3.rgb( colorFn( d ) ).darker().toString() : '';
 	};
+	
+	function toggle( d ) {
+		
+		if ( d.canExpand ) {
+			this.backendApi.expandLeft( d.row, d.col, false );
+			this._toggledNode = d;
+		}
+		else if( d.canCollapse ) {
+			this.backendApi.collapseLeft( d.row, d.col, false );
+			this._toggledNode = d;
+		}
+	}
 
 	/*function toggle(d) {
 		if ( d.children ) {
@@ -175,11 +190,12 @@ function(
 		};
 	}
 
-	function _update ( source ) {
+	function _update( source ) {
 		clearTimeout( this._rotationTimer );
 		var self = this,
 			radius = this._radius,
 			levels = this._levels,
+			maxNumLevels = this._layout.qHyperCube.qDimensionInfo.length,
 			temp,
 			isRadial = this._isRadial;
 
@@ -216,10 +232,10 @@ function(
 		var treeWidth = self._height;
 		var textWidths = [];
 		if ( !isRadial ) {
-			self._padding.left = maxPointSize;
-			self._padding.right = maxPointSize;
+			self._padding.left = maxPointSize + maxPointSize / 6;
+			self._padding.right = maxPointSize + maxPointSize / 6;
 			// if more than one level and level one visible -> add padding to left
-			if ( levels.length > 1 && levels[0].showLabels ) {
+			if ( maxNumLevels > 1 && levels[0].showLabels ) {
 				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12 );
 				if ( temp >= 24 ) {
 					self._padding.left += temp + 8;
@@ -228,7 +244,7 @@ function(
 					levels[0].showLabels = false;
 				}
 			}
-			if ( levels[levels.length - 1] && levels[levels.length - 1].showLabels ) {
+			if ( maxNumLevels === levels.length && levels[levels.length - 1] && levels[levels.length - 1].showLabels ) {
 				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 );
 				if ( temp >= 24 ) {
 					self._padding.right += temp + 8;
@@ -242,8 +258,13 @@ function(
 			textWidths = levels.map( function ( ) {
 				return (treeWidth / (levels.length - 1 || 1)) - 8 - maxPointSize * 2;
 			} );
-			textWidths[0] = self._padding.left - 8 - maxPointSize;
-			textWidths[levels.length - 1] = self._padding.right - 8 - maxPointSize;
+
+			if ( maxNumLevels > 1 && levels[0].showLabels ) {
+				textWidths[0] = self._padding.left - 8 - maxPointSize;
+			}
+			if ( maxNumLevels === levels.length && levels[levels.length - 1] && levels[levels.length - 1].showLabels ) {
+				textWidths[levels.length - 1] = self._padding.right - 8 - maxPointSize;
+			}
 
 			textWidths.forEach( function ( w, i ) {
 				if ( w < 24 ) {
@@ -288,7 +309,7 @@ function(
 		};
 
 		var linearTextTransform = function ( d ) {
-			return "translate(" + (d._children || d.children ? -1 : 1) * (8 + self._pointSize.max) + ")";
+			return "translate(" + (d.canExpand || d.children ? -1 : 1) * (8 + self._pointSize.max) + ")";
 		};
 
 		var diagonal = isRadial ? radialDiagonal : linearDiagonal;
@@ -308,7 +329,7 @@ function(
 
 		if ( tree === radialTree ) {
 			nodes.forEach( function ( d ) {
-				d.x = (((d.x + (arcSize === 360 ? self._rotation : 0) + (180 - arcSize) / 2 ) % 360) + 360 ) % 360;
+				d.x = (((d.x + (arcSize === 360 ? self._rotation : 0) ) % 360) + 360 ) % 360;
 				//if ( arcSize <= 180 ) {
 				//	d.y = ( d.y - radius/levels.length ) / ( radius - radius/levels.length);
 				//	d.y *= radius;
@@ -352,7 +373,7 @@ function(
 			nodes.pop();
 
 			if ( tree === linearTree ) {
-				spacing = self._layout.qHyperCube.qDimensionInfo.length > 1 ? treeWidth / (self._layout.qHyperCube.qDimensionInfo.length - 1) : treeWidth / 2;
+				spacing = levels.length > 1 ? treeWidth / (levels.length - 1) : treeWidth / 2;
 				nodes.forEach( function ( d ) {
 					d.y = ( d.depth - 1) * spacing;
 				} );
@@ -390,7 +411,7 @@ function(
 			}
 			while ( textLength > (width - 2 * padding) && text.length > 0 ) {
 				text = text.slice( 0, -1 );
-				self.text( text + '...' );
+				self.text( text + '…' );
 				textLength = self.node().getComputedTextLength();
 			}
 		};
@@ -463,10 +484,15 @@ function(
 			} )
 			.attr( "transform", enteringTransform )
 			.on( 'click', function ( d ) {
+				if ( !self.mySelections.active && d3.event.shiftKey ) {
+					toggle.call( self, d );
+					return;
+				}
+			
 				if ( !self.selectionsEnabled ) {
 					return;
 				}
-				//toggle(d);
+				
 				selections.select.call( self, d );
 				_update.call( self, d );
 			} )
@@ -478,7 +504,6 @@ function(
 			} );
 
 		nodeEnter.append( "circle" )
-
 			.style( "fill", colorFn )
 			.style( "stroke", strokeColorFn )
 			.attr( "r", 1e-6 );
@@ -501,14 +526,17 @@ function(
 
 		var nodeUpdate = node.transition()
 			.duration( duration )
-			.attr( "transform", transformFn )
-			.style( 'stroke-width', function ( d ) {
-				return Math.sqrt( d.size ) / 150;
-			} );
+			.attr( "transform", transformFn );
+			//.style( 'stroke-width', function ( d ) {
+			//	return Math.sqrt( d.size ) / 150;
+			//} );
 
 		nodeUpdate.attr( "class", function ( d ) {
 			var classes = ['node'];
 			classes.push( (d.children || d._children) ? 'branch' : 'leaf' );
+			if ( d.canExpand || d.canCollapse ) {
+				classes.push( 'node-expandable' );
+			}
 			if ( !self.mySelections.active && !d.isLocked || ( self.mySelections.active && self.mySelections.col === d.col ) ) {
 				classes.push( "node-selectable" );
 			}
@@ -528,7 +556,7 @@ function(
 			.style( "stroke", strokeColorFn )
 			.style( "fill", colorFn )
 			.style( "stroke-width", function ( d ) {
-				return d._children ? sizeFn( d ) / 6 : 0;
+				return d.canCollapse || d.canExpand ? sizeFn( d ) / 6 : 0;
 			} )
 			.attr( "r", sizeFn )
 			.attr( "class", function ( d ) {
@@ -736,8 +764,10 @@ function(
 
 			var root = this._root;
 			root.attr( "class", 'root' );
-
-			_update.call( this, this._data );
+			
+			
+			_update.call( this, this._toggledNode || this._data );
+			this._toggledNode = null;
 
 			var rootTransform = this._isRadial ? "translate(" + w / 2 + "," + h / 2 + ")" :
 			"translate(" + this._padding.left + ", 0)";
@@ -800,6 +830,8 @@ function(
 			*/
 		}
 	} );
+	
+	components.addComponent("pivot-sorting", pivotSorting);
 
 	return {
 		definition: properties,
@@ -807,7 +839,6 @@ function(
 			version: 1.0,
 			qHyperCubeDef: {
 				qMode: "P",
-				qAlwaysFullyExpanded: true,
 				qIndentMode: true,
 				qSuppressMissing: true,
 				qShowTotalsAbove: true,
@@ -830,7 +861,7 @@ function(
 			}
 		},
 		View: DendrogramView,
-		BackendApi: StackedApi,
+		BackendApi: PivotApi,
 		importProperties: function ( exportedFmt, initialProperties, definition ) {
 			var propTree = objectConversion.hypercube.importProperties( exportedFmt, initialProperties, definition ),
 				props = propTree.qProperty;
