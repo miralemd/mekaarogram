@@ -1,0 +1,20 @@
+{
+  "name": "dendrogram",
+  "version": "1.0.0",
+  "description": "",
+  "main": "src/mek-dendogram.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@rd-git.qliktech.com/~mek/dendrogram.git"
+  },
+  "author": "Miralem Drek",
+  "license": "ISC",
+  "devDependencies": {
+    "gulp": "^3.9.0",
+    "gulp-copy": "0.0.2",
+    "gulp-eslint": "^1.0.0"
+  }
+}

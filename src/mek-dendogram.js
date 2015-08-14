@@ -8,12 +8,13 @@ define( [
 	'objects.extension/default-selection-toolbar',
 	"objects.backend-api/stacked-api",
 	"objects.utils/event-utils",
+	"./selection",
 	
 	'./tooltip',
 	'./data-processor',
 	"text!./defs.html",
 	"text!./style.css",
-	
+
 	"./d3",
 	"objects.views/charts/tooltip/chart-tooltip-service"
 ],
@@ -26,23 +27,18 @@ function(
 	DefaultSelectionToolbar,
 	StackedApi,
 	EventUtils,
+	selections,
 	tooltip,
 	dataProcessor,
 	defs,
-	style ) {
-	
-	var $timeout;
-
-	var reds = d3.scale.linear().domain( [0, 1] ).rangeRound( [255, 100] );
-	var greens = d3.scale.linear().domain( [0, 1] ).rangeRound( [100, 255] );
-	
-	//var styleString = ".inSelections circle {fill-opacity:0.5;} .inSelections .unselectable circle{fill-opacity:0.1;} .inSelections .node-selected circle {fill-opacity:1;} .link {fill: none;stroke: #aaa;stroke-linecap: round;opacity: 0.4;}text {fill: #666;} .node circle {fill: #CDECD8;} .branch {cursor: pointer;} .leaf circle { fill: white;}";
+	style
+) {
 
 	var embedStyle = "/* <![CDATA[ */ " + style + " /* ]]> */";
 	var duration = 500;
 	
-	
-	function select( node, siblings ) {
+	/*
+	function select ( node ) {
 		if ( node.elemNo < 0 && node.elemNo !== -3 ) {
 			return;
 		}
@@ -55,7 +51,7 @@ function(
 		if ( !this._selectedElemNo ) {
 			this._selectedElemNo = {};
 		}
-		
+
 		if ( this.mySelections.active ) {
 			if ( node.col !== this.mySelections.col ) {
 				return;
@@ -63,93 +59,86 @@ function(
 		}
 		else {
 			this.mySelections.active = true;
-			this._root.attr("class", "root inSelections");
+			this._root.attr( "class", "root inSelections" );
 			this.mySelections.col = node.col;
 		}
-		
+
 		var selected = !(node.elemNo in this._selectedElemNo);
-		
+
 		if ( !selected ) {
 			delete this._selectedElemNo[node.elemNo];
 		}
 		else {
 			this._selectedElemNo[node.elemNo] = node.row;
 		}
-		
-		//if ( !node.selected && node.elemNo in this._selectedElemNo ) {
-		//	delete this._selectedElemNo[node.elemNo];
-		//}
-		//else if( node.selected && !(node.elemNo in this._selectedElemNo ) ) {
-		//	this._selectedElemNo[node.elemNo] = node.row;
-		//}
-		
+
 		var selectedRows = [];
 		for ( var e in this._selectedElemNo ) {
 			selectedRows.push( this._selectedElemNo[e] );
 		}
-		
+
 		this.selectValues( node.col, selectedRows );
 	}
-	
-	function clearSelections( endSelections ) {
+	*/
+
+	/*
+	function clearSelections ( endSelections ) {
 		this._selectedElemNo = {};
-		
+
 		if ( endSelections ) {
 			this.mySelections.active = false;
-			this._root.attr("class", "root");
+			this._root.attr( "class", "root" );
 		}
 	}
-	
-	function onNodeMouseOver( d, el, event, isRadial ) {
+	*/
+
+	function onNodeMouseOver ( d, el, event, isRadial ) {
 		tooltip.current.d = d;
 		tooltip.current.el = el;
 		tooltip.current.isRadial = isRadial;
-		
+
 		tooltip.activate();
 	}
-	
-	function onNodeMouseLeave() {
+
+	function onNodeMouseLeave () {
 		tooltip.inactivate();
 	}
-	
-	
-	
+
 	var linearDiagonal = d3.svg.diagonal()
 		.projection( function ( d ) {
 			return [d.y, d.x];
 		} );
 
-
 	var radialDiagonal = d3.svg.diagonal.radial()
-		.projection( function( d ) {
+		.projection( function ( d ) {
 			return [d.y, d.x / 180 * Math.PI]
-		});
+		} );
 
-	var radialTransformFn = function( d ) {
+	var radialTransformFn = function ( d ) {
 		return "rotate(" + (d.x - 90) + ") translate(" + d.y + ")";
 	};
 
-	var linearTransformFn = function( d ) {
+	var linearTransformFn = function ( d ) {
 		return "translate(" + d.y + "," + d.x + ")";
 	};
 
-	var radialTextAnchorFn = function( d ) {
+	var radialTextAnchorFn = function ( d ) {
 		return d.x < 180 ? "start" : "end";
 	};
 
-	var linearTextAnchorFn = function( d ) {
+	var linearTextAnchorFn = function ( d ) {
 		return d._children || d.children ? "end" : "start";
 	};
 
-	var colorFn = function( d ) {
+	var colorFn = function ( d ) {
 		return ( d.target ? d.target.color : d.color ) || 'rgb(100, 150, 150)';
 	};
 
-	var strokeColorFn = function( d ) {
+	var strokeColorFn = function ( d ) {
 		return d._children ? d3.rgb( colorFn( d ) ).darker().toString() : '';
 	};
 
-	function toggle(d) {
+	/*function toggle(d) {
 		if ( d.children ) {
 			d._children = d.children;
 			d.children = null;
@@ -158,35 +147,35 @@ function(
 			d.children = d._children;
 			d._children = null;
 		}
-	}
+	}*/
 
-	function getMinMax( node, prop ) {
+	function getMinMax ( node, prop ) {
 
 		var max = -Number.MIN_VALUE,
 			min = Number.MAX_VALUE;
 
 		if ( node.children ) {
-			node.children.forEach( function( c ) {
+			node.children.forEach( function ( c ) {
 				var m = getMinMax( c, prop );
 				max = Math.max( max, m.max );
 				min = Math.min( min, m.min );
 			} );
 		}
-		
+
 		max = Math.max( max, node[prop] );
 		min = Math.min( min, node[prop] );
-		
+
 		if ( isNaN( max ) ) {
 			max = min = 1;
 		}
-		
+
 		return {
 			max: max,
 			min: min
 		};
 	}
 
-	function _update( source ) {
+	function _update ( source ) {
 		clearTimeout( this._rotationTimer );
 		var self = this,
 			radius = this._radius,
@@ -195,31 +184,31 @@ function(
 			isRadial = this._isRadial;
 
 		var maxLevelNodes = Math.max.apply( null, levels );
-		
+
 		var minPointSize = 2;
 		var maxPointSize = 40;
-		
+
 		if ( isRadial ) {
 			var maxArcLength = Math.PI * radius / maxLevelNodes;
 			maxPointSize = Math.min( maxPointSize, Math.max( maxArcLength / 2, minPointSize * 4 ) );
 			minPointSize = Math.min( maxPointSize / 4, maxArcLength / 8 );
 		}
 		else {
-			var boo = Math.min(self._width / maxLevelNodes, self._height / levels.length );
+			var boo = Math.min( self._width / maxLevelNodes, self._height / levels.length );
 			minPointSize = Math.max( minPointSize, boo / 8 );
 			maxPointSize = Math.max( minPointSize, Math.min( maxPointSize, Math.max( boo / 2, 2 ) ) );
 		}
-		
-		self._pointSize = {min: minPointSize, max: maxPointSize };
-		self._sizing = d3.scale.linear().domain( [self._minMax.min, self._minMax.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp(true);
+
+		self._pointSize = {min: minPointSize, max: maxPointSize};
+		self._sizing = d3.scale.linear().domain( [self._minMax.min, self._minMax.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
 
 		temp = maxLevelNodes * maxPointSize / Math.PI;
-		
+
 		var arcSize = 360;
-		
-		levels = levels.map( function( n ) {
+
+		levels = levels.map( function ( n ) {
 			return {
-				showLabels: isRadial ? (radius*2*Math.PI) / n > 16 : self._width / n > 8,
+				showLabels: isRadial ? (radius * 2 * Math.PI) / n > 16 : self._width / n > 8,
 				nodes: n
 			};
 		} );
@@ -231,7 +220,7 @@ function(
 			self._padding.right = maxPointSize;
 			// if more than one level and level one visible -> add padding to left
 			if ( levels.length > 1 && levels[0].showLabels ) {
-				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1/levels.length), this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12 );
+				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12 );
 				if ( temp >= 24 ) {
 					self._padding.left += temp + 8;
 				}
@@ -240,7 +229,7 @@ function(
 				}
 			}
 			if ( levels[levels.length - 1] && levels[levels.length - 1].showLabels ) {
-				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1/levels.length), this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 );
+				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 );
 				if ( temp >= 24 ) {
 					self._padding.right += temp + 8;
 				}
@@ -250,7 +239,7 @@ function(
 			}
 			treeWidth -= (self._padding.left + self._padding.right);
 
-			textWidths = levels.map( function ( level, i ) {
+			textWidths = levels.map( function ( ) {
 				return (treeWidth / (levels.length - 1 || 1)) - 8 - maxPointSize * 2;
 			} );
 			textWidths[0] = self._padding.left - 8 - maxPointSize;
@@ -264,42 +253,41 @@ function(
 		}
 		else {
 			radius -= maxPointSize;
-			temp = Math.min( (radius - (maxPointSize * 2 + 8) * levels.length) * Math.min(0.5, 1/levels.length), this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 );
-			if ( levels[levels.length-1].showLabels && temp >= 24 ) {
+			temp = Math.min( (radius - (maxPointSize * 2 + 8) * levels.length) * Math.min( 0.5, 1 / levels.length ), this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 );
+			if ( levels[levels.length - 1].showLabels && temp >= 24 ) {
 				radius -= temp;
 			}
-			levels.forEach( function( level, i ) {
-				textWidths.push( radius/( levels.length ) - maxPointSize*2 - 16 );
-				if ( textWidths[i] < 24 && i < levels.length-1 ) {
+			levels.forEach( function ( level, i ) {
+				textWidths.push( radius / ( levels.length ) - maxPointSize * 2 - 16 );
+				if ( textWidths[i] < 24 && i < levels.length - 1 ) {
 					level.showLabels = false;
 				}
 			} );
-			textWidths[levels.length-1] = temp;
-			levels[levels.length-1].showLabels = levels[levels.length-1].showLabels && temp >= 24;
+			textWidths[levels.length - 1] = temp;
+			levels[levels.length - 1].showLabels = levels[levels.length - 1].showLabels && temp >= 24;
 		}
 
-		var linearTree = d3.layout.tree().size([self._width, treeWidth] ).separation( function( a, b ) {
-			return self._sizing(a.size) + self._sizing( b.size );
-		});
+		var linearTree = d3.layout.tree().size( [self._width, treeWidth] ).separation( function ( a, b ) {
+			return self._sizing( a.size ) + self._sizing( b.size );
+		} );
 
 		var radialTree = d3.layout.tree().size( [arcSize, radius] )
-			.separation( function( a, b ) {
-				return ( self._sizing(a.size) + self._sizing( b.size ) ) *  ( (a.parent === b.parent ? 1 : 2) / (a.depth || 1) );
+			.separation( function ( a, b ) {
+				return ( self._sizing( a.size ) + self._sizing( b.size ) ) * ( (a.parent === b.parent ? 1 : 2) / (a.depth || 1) );
 				//return (sizing(a.size) + sizing( b.size )) / a.depth;
-			});
+			} );
 
-		var sizeFn = function( d ) {
+		var sizeFn = function ( d ) {
 			d.nodeSize = d.target ? self._layout.adaptiveStrokeWidth ? self._sizing( d.target.size ) : 1 : // d.target exists for node links
 				self._sizing( d.size );
 			return d.nodeSize;
 		};
-		
 
-		var radialTextTransformFn = function( d ) {
-			return d.x < 180 ? "translate(" + (8+self._pointSize.max) + ")" : "rotate(180) translate(-" + (8 + self._pointSize.max) + ")";
+		var radialTextTransformFn = function ( d ) {
+			return d.x < 180 ? "translate(" + (8 + self._pointSize.max) + ")" : "rotate(180) translate(-" + (8 + self._pointSize.max) + ")";
 		};
 
-		var linearTextTransform = function( d ) {
+		var linearTextTransform = function ( d ) {
 			return "translate(" + (d._children || d.children ? -1 : 1) * (8 + self._pointSize.max) + ")";
 		};
 
@@ -311,16 +299,16 @@ function(
 
 		var nodes = tree.nodes( self._data ).reverse();
 		var levelNodes = [];
-		nodes.forEach( function( n, i, arr ) {
+		nodes.forEach( function ( n ) {
 			if ( !levelNodes[n.depth] ) {
 				levelNodes[n.depth] = [];
 			}
 			levelNodes[n.depth].push( n );
-		});
-		
+		} );
+
 		if ( tree === radialTree ) {
 			nodes.forEach( function ( d ) {
-				d.x = (((d.x + (arcSize === 360 ? self._rotation : 0) + (180-arcSize)/2 ) % 360) + 360 ) % 360;
+				d.x = (((d.x + (arcSize === 360 ? self._rotation : 0) + (180 - arcSize) / 2 ) % 360) + 360 ) % 360;
 				//if ( arcSize <= 180 ) {
 				//	d.y = ( d.y - radius/levels.length ) / ( radius - radius/levels.length);
 				//	d.y *= radius;
@@ -331,29 +319,29 @@ function(
 			levelNodes.filter( function ( level ) {
 				return !!level;
 			} ).forEach( function ( level ) {
-				level.forEach( function( n, i, arr ) {
-					
+				level.forEach( function ( n, i, arr ) {
+
 					var dx = 0;
 					if ( i < arr.length - 1 ) {
-						dx = Math.abs( n.x - arr[i+1].x );
+						dx = Math.abs( n.x - arr[i + 1].x );
 					}
 					else {
 						dx = n.x * 2.4;
 					}
-					
+
 					if ( i > 0 ) {
-						dx = Math.min( dx, Math.abs( n.x - arr[i-1].x ) );
+						dx = Math.min( dx, Math.abs( n.x - arr[i - 1].x ) );
 					}
 					else {
-						dx = Math.min( dx, (self._width - n.x)*2.4 );
+						dx = Math.min( dx, (self._width - n.x) * 2.4 );
 					}
-					
+
 					if ( dx < 10 ) {
 						n.showLabel = false;
 					}
-					else if( n.depth > 0 ){
+					else if ( n.depth > 0 ) {
 						n.showLabel = true;
-						levels[n.depth-1].hasVisibleLabels = true;
+						levels[n.depth - 1].hasVisibleLabels = true;
 					}
 				} );
 			} );
@@ -377,10 +365,9 @@ function(
 			}
 		}
 
-		
 		var rdx = this._w / 2 - radius;
 		var rdy = this._h / 2 - radius;
-		
+
 		var wrap = function ( d ) {
 			var self = d3.select( this ),
 				dx, dy,
@@ -389,62 +376,62 @@ function(
 				approxFit,
 				textLength,
 				text;
-			dx = rdx*Math.cos( (d.x+90)*Math.PI/180 );
-			dy = rdy*Math.sin( (d.x+90)*Math.PI/180 );
-			width = isRadial && d.depth === levels.length ? 
-				Math.sqrt( dx*dx + dy*dy) - maxPointSize - 8 :
-				textWidths[d.depth-1];
+			dx = rdx * Math.cos( (d.x + 90) * Math.PI / 180 );
+			dy = rdy * Math.sin( (d.x + 90) * Math.PI / 180 );
+			width = isRadial && d.depth === levels.length ?
+			Math.sqrt( dx * dx + dy * dy ) - maxPointSize - 8 :
+				textWidths[d.depth - 1];
 			self.text( d.name );
 			textLength = self.node().getComputedTextLength();
 			text = self.text();
 			if ( textLength > width && text.length > 0 ) {
-				approxFit = Math.ceil( width/(textLength/text.length) );
+				approxFit = Math.ceil( width / (textLength / text.length) );
 				text = text.slice( 0, approxFit );
 			}
-			while (textLength > (width - 2 * padding) && text.length > 0) {
-				text = text.slice(0, -1);
-				self.text(text + '...');
+			while ( textLength > (width - 2 * padding) && text.length > 0 ) {
+				text = text.slice( 0, -1 );
+				self.text( text + '...' );
 				textLength = self.node().getComputedTextLength();
 			}
 		};
-		
-		var checkTextNode = function( d ) {
-			if( d.showLabel === false || ( d.depth > 0 && levels[d.depth -1].showLabels === false ) ) {
-				d3.select(this).select( "text" ).remove();
+
+		var checkTextNode = function ( d ) {
+			if ( d.showLabel === false || ( d.depth > 0 && levels[d.depth - 1].showLabels === false ) ) {
+				d3.select( this ).select( "text" ).remove();
 				return;
 			}
-			
-			var t = this.querySelector("text");
+
+			var t = this.querySelector( "text" );
 			if ( !t ) { // enter
-				d3.select( this ).append("text")
+				d3.select( this ).append( "text" )
 					.text( d.name )
-					.attr("dy", ".35em")
-					.style("fill-opacity", 1e-6);
+					.attr( "dy", ".35em" )
+					.style( "fill-opacity", 1e-6 );
 			}
-			
+
 			// update
-			d3.select( this ).select("text" )
+			d3.select( this ).select( "text" )
 				.text( d.name )
 				.each( wrap )
-				.attr("text-anchor", textAnchorFn )
-				.attr('transform', textTransformFn )
+				.attr( "text-anchor", textAnchorFn )
+				.attr( 'transform', textTransformFn )
 				.transition()
-				.duration(duration)
-				.style("fill-opacity", 1 );
+				.duration( duration )
+				.style( "fill-opacity", 1 );
 		};
-		
-		var checkEmoticonNode = function( d ) {
 
-			if( !d.emoticon || d.nodeSize < 8 ) {
-				d3.select(this).select( "use" ).remove();
+		var checkEmoticonNode = function ( d ) {
+
+			if ( !d.emoticon || d.nodeSize < 8 ) {
+				d3.select( this ).select( "use" ).remove();
 				return;
 			}
 
-			var t = this.querySelector("use");
+			var t = this.querySelector( "use" );
 			if ( !t ) { // enter
-				d3.select( this ).append("use")
-					.attr("xlink:href", '#' + d.emoticon )
-					.attr("transform", "scale(0.001, 0.001) translate(-370, -540)");
+				d3.select( this ).append( "use" )
+					.attr( "xlink:href", '#' + d.emoticon )
+					.attr( "transform", "scale(0.001, 0.001) translate(-370, -540)" );
 			}
 			else {
 				t.setAttribute( "href", '#' + d.emoticon );
@@ -452,11 +439,11 @@ function(
 		};
 
 		var enteringTransform = isRadial ?
-		"rotate(" + (source._x - 90) + ") translate(" + source._y + ")":
+		"rotate(" + (source._x - 90) + ") translate(" + source._y + ")" :
 		"translate(" + source._y + "," + source._x + ")";
 
 		var exitingTransform = isRadial ?
-		"rotate(" + (source.x - 90) + ") translate(" + source.y + ")":
+		"rotate(" + (source.x - 90) + ") translate(" + source.y + ")" :
 		"translate(" + source.y + "," + source.x + ")";
 
 		//nodes.forEach(function( d ) {
@@ -464,37 +451,37 @@ function(
 		//});
 
 		// update existing nodes
-		var node = self._root.selectAll("g.node")
-			.data(nodes, function(d, i) {
+		var node = self._root.selectAll( "g.node" )
+			.data( nodes, function ( d, i ) {
 				return d.id || (d.id = ++i);
-			});
+			} );
 
 		// attach new nodes to parent's previous position (position to transition from) 
-		var nodeEnter = node.enter().append("g")
-			.attr("class", function( d ) {
+		var nodeEnter = node.enter().append( "g" )
+			.attr( "class", function ( d ) {
 				return "node " + ((d.children || d._children) ? 'branch' : "leaf");
-			})
-			.attr("transform", enteringTransform )
-			.on('click', function( d ) {
+			} )
+			.attr( "transform", enteringTransform )
+			.on( 'click', function ( d ) {
 				if ( !self.selectionsEnabled ) {
 					return;
 				}
 				//toggle(d);
-				select.call( self, d, levelNodes[d.depth] );
-				_update.call(self,d);
-			})
-			.on("mouseenter", function( d ) {
+				selections.select.call( self, d );
+				_update.call( self, d );
+			} )
+			.on( "mouseenter", function ( d ) {
 				onNodeMouseOver( d, this, d3.event, isRadial );
-			})
-			.on("mouseleave", function( d ) {
+			} )
+			.on( "mouseleave", function ( d ) {
 				onNodeMouseLeave( d, null, d3.event );
-			});
+			} );
 
-		nodeEnter.append("circle")
-			
-			.style("fill", colorFn )
-			.style("stroke", strokeColorFn )
-			.attr("r", 1e-6 );
+		nodeEnter.append( "circle" )
+
+			.style( "fill", colorFn )
+			.style( "stroke", strokeColorFn )
+			.attr( "r", 1e-6 );
 
 		/*
 		nodeEnter.append("use")
@@ -503,23 +490,23 @@ function(
 			})
 			.attr("transform", "scale(0.001, 0.001) translate(-370, -540)");
 		*/
-		
+
 		//nodeEnter.append("text")
 		//	.attr("dy", ".35em")
 		//	.text(function( d ) {
 		//		return d.name;
 		//	})
 		//	.each(wrap)
-			//.style("fill-opacity", 1e-6);
+		//.style("fill-opacity", 1e-6);
 
 		var nodeUpdate = node.transition()
 			.duration( duration )
-			.attr("transform", transformFn )
-			.style('stroke-width', function(d){
-				return Math.sqrt( d.size )/150;
-			});
-		
-		nodeUpdate.attr("class", function( d ) {
+			.attr( "transform", transformFn )
+			.style( 'stroke-width', function ( d ) {
+				return Math.sqrt( d.size ) / 150;
+			} );
+
+		nodeUpdate.attr( "class", function ( d ) {
 			var classes = ['node'];
 			classes.push( (d.children || d._children) ? 'branch' : 'leaf' );
 			if ( !self.mySelections.active && !d.isLocked || ( self.mySelections.active && self.mySelections.col === d.col ) ) {
@@ -533,24 +520,24 @@ function(
 					classes.push( 'unselectable' );
 				}
 			}
-		
-			return classes.join(" ");
-		});
 
-		nodeUpdate.select("circle")
-			.style("stroke", strokeColorFn )
-			.style("fill", colorFn )
-			.style("stroke-width", function( d ) {
+			return classes.join( " " );
+		} );
+
+		nodeUpdate.select( "circle" )
+			.style( "stroke", strokeColorFn )
+			.style( "fill", colorFn )
+			.style( "stroke-width", function ( d ) {
 				return d._children ? sizeFn( d ) / 6 : 0;
-			})
-			.attr("r", sizeFn )
-			.attr("class", function( d ) {
+			} )
+			.attr( "r", sizeFn )
+			.attr( "class", function ( d ) {
 				return (d.children || d._children) ? 'branch' : "leaf";
-			});
-		
+			} );
+
 		nodeUpdate.each( checkTextNode );
 		nodeUpdate.each( checkEmoticonNode );
-		
+
 		nodeUpdate.select( "use" )
 			.attr( "transform", function ( d ) {
 				var size = sizeFn( d );
@@ -559,57 +546,59 @@ function(
 			} );
 
 		var nodeExit = node.exit().transition()
-			.duration(duration)
-			.attr("transform", exitingTransform )
+			.duration( duration )
+			.attr( "transform", exitingTransform )
 			.remove();
 
-		nodeExit.select("circle")
-			.attr("r", 1e-6);
+		nodeExit.select( "circle" )
+			.attr( "r", 1e-6 );
 
-		nodeExit.select("text")
-			.style('fill-opacity', 1e-6);
+		nodeExit.select( "text" )
+			.style( 'fill-opacity', 1e-6 );
 
-		var links = tree.links(nodes);
+		var links = tree.links( nodes );
 
 		// Update the links…
-		var link = self._root.selectAll("path.link")
-			.data(links, function(d) { return d.target.id; });
+		var link = self._root.selectAll( "path.link" )
+			.data( links, function ( d ) {
+				return d.target.id;
+			} );
 
 		// Enter any new links at the parent's previous position.
-		link.enter().insert("path", "g")
-			.attr("class", "link")
-			.attr("d", function( d ) {
+		link.enter().insert( "path", "g" )
+			.attr( "class", "link" )
+			.attr( "d", function () {
 				var o = {x: source._x, y: source._y};
-				return diagonal({source: o, target: o});
-			})
+				return diagonal( {source: o, target: o} );
+			} )
 			//.style("stroke", colorFn )
-			.style('stroke-width', 1e-6 )
+			.style( 'stroke-width', 1e-6 )
 			.transition()
-			.duration(duration)
-			.attr("d", diagonal);
+			.duration( duration )
+			.attr( "d", diagonal );
 
 		// Transition links to their new position.
 		link.transition()
-			.duration(duration)
-			.style('stroke-width', sizeFn )
-			.attr("d", diagonal);
+			.duration( duration )
+			.style( 'stroke-width', sizeFn )
+			.attr( "d", diagonal );
 
 		// Transition exiting nodes to the parent's new position.
 		link.exit().transition()
-			.duration(duration)
-			.attr("d", function(d) {
+			.duration( duration )
+			.attr( "d", function () {
 				var o = {x: source.x, y: source.y};
-				return diagonal({source: o, target: o});
-			})
+				return diagonal( {source: o, target: o} );
+			} )
 			.remove();
 
-		nodes.forEach(function( n ) {
+		nodes.forEach( function ( n ) {
 			n._x = n.x;
 			n._y = n.y;
-		});
+		} );
 	}
 
-	function _updateSize() {
+	function _updateSize () {
 		var w = this.$element.width(),
 			h = this.$element.height();
 
@@ -618,21 +607,22 @@ function(
 		this._width = h; // width to height due to projection
 		this._height = w;
 
-		this._radius = Math.min( w, h )/ 2;
-		
+		this._radius = Math.min( w, h ) / 2;
+
 		var minPointSize = Math.max( 1, this._radius / 100 );
 		var maxPointSize = Math.min( 40, Math.max( this._radius / 20, 2 ) );
-		
-		this._pointSize = {min: minPointSize, max: maxPointSize };
+
+		this._pointSize = {min: minPointSize, max: maxPointSize};
 		this._sizing = d3.scale.linear().domain( [this._minMax.min, this._minMax.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
 
 		this._padding = {
 			left: 0,//maxPointSize,//Math.min( w * 0.2, this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12 ),
 			right: 0//maxPointSize//Math.min( w * 0.2, this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 )
 		};
-		
+
 		//var levelSpacing = layout.radial ? this._radius / maxLevel : this._height / maxLevel;
 	}
+
 	/*
 	var DendrogramController = Controller.extend( "DendogramController", {
 		init: function( scope, element, timeout, selectionService ) {
@@ -651,73 +641,70 @@ function(
 		
 	});
 	*/
-	
-	var DendrogramView = DefaultView.extend({
-		init: function() {
+
+	var DendrogramView = DefaultView.extend( {
+		init: function () {
 			this._super.apply( this, arguments );
 
-			var svg = d3.select( this.$element[0] ).append("svg")
-					.attr({
-						xmlns: "http://www.w3.org/2000/svg",
-						xlink: "http://www.w3.org/1999/xlink"
-					});
-			
+			var svg = d3.select( this.$element[0] ).append( "svg" )
+				.attr( {
+					xmlns: "http://www.w3.org/2000/svg",
+					xlink: "http://www.w3.org/1999/xlink"
+				} );
+
 			this.$element.find( "svg " ).html( defs );
-			
+
 			svg.append( "style" ).text( embedStyle );
 
 			this._rotation = 0;
-		
-			this._root = svg.append("g")
-				.attr("class","root");
 
-			$timeout = qvangular.getService("$timeout");
-			
+			this._root = svg.append( "g" )
+				.attr( "class", "root" );
+
+			$timeout = qvangular.getService( "$timeout" );
+
 		},
-		resize: function() {
+		resize: function () {
 			_updateSize.call( this );
 
 			var w = this._w;
 			var h = this._h;
 
-			var svg = d3.select( this.$element[0] ).select("svg");
-			
-			
-			_update.call( this, this._data);
+			var svg = d3.select( this.$element[0] ).select( "svg" );
 
-			var rootTransform = this._isRadial ? "translate(" + w/2 + "," + h/2 + ")" :
-			"translate(" + this._padding.left +", 0)";
+			_update.call( this, this._data );
 
-			svg.attr("width", w )
-				.attr("height", h )
-				.select(".root" )
+			var rootTransform = this._isRadial ? "translate(" + w / 2 + "," + h / 2 + ")" :
+			"translate(" + this._padding.left + ", 0)";
+
+			svg.attr( "width", w )
+				.attr( "height", h )
+				.select( ".root" )
 				.transition()
-				.duration(duration)
-				.attr("transform", rootTransform );
+				.duration( duration )
+				.attr( "transform", rootTransform );
 		},
-		on: function() {
+		on: function () {
 			this._super();
-			
-			
-			
-			this.$element.on( "mousewheel DOMMouseScroll", function( e ) {
+
+			this.$element.on( "mousewheel DOMMouseScroll", function ( e ) {
 				e = e.originalEvent;
 				e.preventDefault();
 				var direction = (e.detail < 0 || e.wheelDelta > 0) ? 1 : -1;
-				this._rotation += 10*direction;
+				this._rotation += 10 * direction;
 				clearTimeout( this._rotationTimer );
-				this._rotationTimer = setTimeout( function() {
+				this._rotationTimer = setTimeout( function () {
 					_update.call( this, this._data );
 				}.bind( this ), 30 )
-				
+
 			}.bind( this ) );
 		},
-		off: function() {
+		off: function () {
 			clearTimeout( this._rotationTimer );
 			this._super();
-			this.$element.off( "mousewheel DOMMouseScroll");
+			this.$element.off( "mousewheel DOMMouseScroll" );
 		},
-		paint : function( $element, layout ) {
+		paint: function ( $element, layout ) {
 
 			if ( !this.mySelections ) {
 				this.mySelections = {
@@ -730,7 +717,7 @@ function(
 
 			var data = dataProcessor.process( layout ),
 				w, h;
-			
+
 			this._levels = data.levels;
 			this._maxLevelNodes = Math.max.apply( null, this._levels );
 			this._isRadial = this._maxLevelNodes < 10 ? false : layout.radial;
@@ -744,31 +731,32 @@ function(
 			w = this._w;
 			h = this._h;
 
-			data._x = h/2;
+			data._x = h / 2;
 			data._y = 0;
 
-			
-
 			var root = this._root;
-			root.attr("class", 'root');
-			
+			root.attr( "class", 'root' );
+
 			_update.call( this, this._data );
 
-			var rootTransform = this._isRadial ? "translate(" + w/2 + "," + h/2 + ")" :
-			"translate(" + this._padding.left +", 0)";
+			var rootTransform = this._isRadial ? "translate(" + w / 2 + "," + h / 2 + ")" :
+			"translate(" + this._padding.left + ", 0)";
 
-			var svg = d3.select( this.$element[0] ).select("svg");
-			svg.attr("width", w )
-				.attr("height", h )
-				.select(".root")
+			var svg = d3.select( this.$element[0] ).select( "svg" );
+			svg.attr( "width", w )
+				.attr( "height", h )
+				.select( ".root" )
 				.transition()
-				.duration(duration)
-				.attr("transform", rootTransform );
+				.duration( duration )
+				.attr( "transform", rootTransform );
 		},
 		getSelectionToolbar: function () {
-			return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [], []);
+			return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [], [] );
 		},
 		selectValues: function ( qDimNo, qValues ) {
+			
+			selections.selectValues( this, qDimNo, qValues );
+			/*
 			if ( !this.selectionsEnabled ) {
 				return;
 			}
@@ -796,37 +784,38 @@ function(
 					$scope.selectionsApi.selectionsMade = false;
 					self.resize();
 				};
-				
+
 				//start selection mode
 				this.backendApi.beginSelections();
 				$scope.selectionsApi.activated();
 				$scope.selectionsApi.selectionsMade = true;
 			}
-			
+
 			if ( !qValues.length ) {
 				this.backendApi.clearSelections();
 			}
 			else {
 				this.backendApi.select( qValues, [qDimNo], 'L' );
 			}
+			*/
 		}
 	} );
-	
+
 	return {
-		definition : properties,
-		initialProperties : {
+		definition: properties,
+		initialProperties: {
 			version: 1.0,
-			qHyperCubeDef : {
+			qHyperCubeDef: {
 				qMode: "P",
 				qAlwaysFullyExpanded: true,
 				qIndentMode: true,
 				qSuppressMissing: true,
 				qShowTotalsAbove: true,
-				qDimensions : [],
-				qMeasures : [],
-				qInitialDataFetch : [{
-					qWidth : 10,
-					qHeight : 1000
+				qDimensions: [],
+				qMeasures: [],
+				qInitialDataFetch: [{
+					qWidth: 10,
+					qHeight: 1000
 				}]
 			}
 		},
@@ -845,10 +834,10 @@ function(
 		importProperties: function ( exportedFmt, initialProperties, definition ) {
 			var propTree = objectConversion.hypercube.importProperties( exportedFmt, initialProperties, definition ),
 				props = propTree.qProperty;
-			
+
 			props.qHyperCubeDef.qShowTotalsAbove = true;
 			props.qHyperCubeDef.qNoOfLeftDims = -1;
 			return propTree;
 		}
 	};
-});
+} );
