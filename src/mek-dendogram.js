@@ -233,23 +233,29 @@ function(
 
 		var treeWidth = self._height;
 		var textWidths = [];
+		var maxW;
 		if ( !isRadial ) {
 			self._padding.left = maxPointSize + maxPointSize / 6;
 			self._padding.right = maxPointSize + maxPointSize / 6;
+			
 			// if more than one level and level one visible -> add padding to left
 			if ( maxNumLevels > 1 && levels[0].showLabels ) {
-				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12 );
-				if ( temp >= 24 ) {
+				maxW = this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12;
+				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), maxW );
+				if ( temp > 64 || temp >= 12 && temp/maxW >= 0.2 ) {
 					self._padding.left += temp + 8;
+					levels[0].spacingAdded = temp + 8;
 				}
 				else {
 					levels[0].showLabels = false;
 				}
 			}
 			if ( maxNumLevels === levels.length && levels[levels.length - 1] && levels[levels.length - 1].showLabels ) {
-				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 );
-				if ( temp >= 24 ) {
+				maxW = this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12;
+				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), maxW );
+				if ( temp > 64 || temp >=12 && temp/maxW >= 0.2 ) {
 					self._padding.right += temp + 8;
+					levels[levels.length - 1].spacingAdded = temp + 8;
 				}
 				else {
 					levels[levels.length - 1].showLabels = false;
@@ -269,20 +275,22 @@ function(
 			}
 
 			textWidths.forEach( function ( w, i ) {
-				if ( w < 24 ) {
+				if ( !levels[0].showLabels || w < 12 || w/(this._layout.qHyperCube.qDimensionInfo[i].qApprMaxGlyphCount * 12 ) < 0.2 ) {
 					levels[i].showLabels = false;
 				}
 			}, this );
 		}
 		else {
 			radius -= maxPointSize;
-			temp = Math.min( (radius - (maxPointSize * 2 + 8) * levels.length) * Math.min( 0.5, 1 / levels.length ), this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 );
-			if ( levels[levels.length - 1].showLabels && temp >= 24 ) {
+			maxW = this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12;
+			temp = Math.min( (radius - (maxPointSize * 2 + 8) * levels.length) * Math.min( 0.5, 1 / levels.length ), maxW );
+			if ( levels[levels.length - 1].showLabels && ( temp >= 12 || (temp > 64 && temp/maxW > 0.2) ) ) {
 				radius -= temp;
 			}
 			levels.forEach( function ( level, i ) {
 				textWidths.push( radius / ( levels.length ) - maxPointSize * 2 - 16 );
-				if ( textWidths[i] < 24 && i < levels.length - 1 ) {
+				maxW = maxW = self._layout.qHyperCube.qDimensionInfo[i].qApprMaxGlyphCount * 12;
+				if ( i < levels.length - 1 && ( textWidths[i] < 12 || textWidths < 64 && textWidths[i]/maxW < 0.2) ) {
 					level.showLabels = false;
 				}
 			} );
@@ -368,7 +376,24 @@ function(
 					}
 				} );
 			} );
+			levels.forEach( function( l, i ) {
+				if ( !l.hasVisibleLabels ) {
+					l.showLabels = false;
+					if ( l.spacingAdded ) {
+						treeWidth += l.spacingAdded;
+						if ( i === 0 ) {
+							self.padding._left -= l.spacingAdded;
+						}
+						else if( i === levels.length - 1) {
+							self.padding._right -= l.spacingAdded;
+						}
+					}
+				}
+			} );
 		}
+		
+		
+		
 
 		var spacing = 200;
 		if ( self._data.name === '_root' ) {
@@ -479,20 +504,6 @@ function(
 				return d.id || (d.id = ++i);
 			} );
 		
-		function onTap( d ) {
-			if ( !self.mySelections.active && d3.event.shiftKey ) {
-				toggle.call( self, d );
-				return;
-			}
-
-			if ( !self.selectionsEnabled ) {
-				return;
-			}
-
-			selections.select.call( self, d );
-			_update.call( self, d );
-		}
-
 		// attach new nodes to parent's previous position (position to transition from) 
 		var nodeEnter = node.enter().append( "g" )
 			.attr( "class", function ( d ) {
@@ -678,7 +689,7 @@ function(
 		init: function () {
 			this._super.apply( this, arguments );
 
-			var svgDefs = d3.select( this.$element[0] ).append( "svg" )
+			d3.select( this.$element[0] ).append( "svg" )
 				.attr( {
 					xmlns: "http://www.w3.org/2000/svg",
 					xlink: "http://www.w3.org/1999/xlink"
@@ -740,8 +751,7 @@ function(
 			}.bind( this ) );
 			
 			var self = this,
-				start,
-				end;
+				dataPoint;
 
 			function onTap( e, d ) {
 				if ( !self.mySelections.active && e && e.shiftKey ) {
@@ -767,11 +777,7 @@ function(
 					if ( self.mySelections.active || self._layout.qHyperCube.qAlwaysFullyExpanded ) {
 						return;
 					}
-					start = {
-						x: data.pagePoints[0].x,
-						y: data.pagePoints[0].y,
-						data: d3.select( data.relatedTarget ).data()
-					};
+					dataPoint = d3.select( data.relatedTarget ).data();
 				},
 				update: function () {
 					Touche.preventGestures( this.gestureHandler );
@@ -781,11 +787,11 @@ function(
 						angle,
 						d;
 
-					if ( !start || !start.data[0] ) {
+					if ( !dataPoint || !dataPoint[0] ) {
 						return;
 					}
 					Touche.preventGestures( this.gestureHandler );
-					var d = start.data[0];
+					var d = dataPoint[0];
 
 					if ( !self._isRadial ) {
 						if ( dir === 'left' && d.canExpand || dir === 'right' && d.canCollapse ) {
