@@ -1,5 +1,6 @@
 /*globals define, console*/
 define( [
+	'jquery',
 	'qvangular',
 	'./properties',
 	'objects.extension/controller',
@@ -20,6 +21,7 @@ define( [
 	'objects.views/charts/tooltip/chart-tooltip-service'
 ],
 function(
+	$,
 	qvangular,
 	properties,
 	Controller,
@@ -207,7 +209,7 @@ function(
 		if ( isRadial ) {
 			var maxArcLength = Math.PI * radius / maxLevelNodes;
 			maxPointSize = Math.min( maxPointSize, Math.max( maxArcLength / 2, minPointSize * 4 ) );
-			minPointSize = Math.min( maxPointSize / 4, maxArcLength / 8 );
+			minPointSize = Math.max( minPointSize, Math.min( maxPointSize / 4, maxArcLength / 8 ) );
 		}
 		else {
 			var boo = Math.min( self._width / maxLevelNodes, self._height / levels.length );
@@ -476,6 +478,20 @@ function(
 			.data( nodes, function ( d, i ) {
 				return d.id || (d.id = ++i);
 			} );
+		
+		function onTap( d ) {
+			if ( !self.mySelections.active && d3.event.shiftKey ) {
+				toggle.call( self, d );
+				return;
+			}
+
+			if ( !self.selectionsEnabled ) {
+				return;
+			}
+
+			selections.select.call( self, d );
+			_update.call( self, d );
+		}
 
 		// attach new nodes to parent's previous position (position to transition from) 
 		var nodeEnter = node.enter().append( "g" )
@@ -483,19 +499,7 @@ function(
 				return "node " + ((d.children || d._children) ? 'branch' : "leaf");
 			} )
 			.attr( "transform", enteringTransform )
-			.on( 'click', function ( d ) {
-				if ( !self.mySelections.active && d3.event.shiftKey ) {
-					toggle.call( self, d );
-					return;
-				}
-			
-				if ( !self.selectionsEnabled ) {
-					return;
-				}
-				
-				selections.select.call( self, d );
-				_update.call( self, d );
-			} )
+			//.on( 'click', onTap )
 			.on( "mouseenter", function ( d ) {
 				onNodeMouseOver( d, this, d3.event, isRadial );
 			} )
@@ -674,18 +678,26 @@ function(
 		init: function () {
 			this._super.apply( this, arguments );
 
+			var svgDefs = d3.select( this.$element[0] ).append( "svg" )
+				.attr( {
+					xmlns: "http://www.w3.org/2000/svg",
+					xlink: "http://www.w3.org/1999/xlink"
+				} ).style( 'display', 'none' );
+			
+			
 			var svg = d3.select( this.$element[0] ).append( "svg" )
 				.attr( {
 					xmlns: "http://www.w3.org/2000/svg",
 					xlink: "http://www.w3.org/1999/xlink"
 				} );
 
-			this.$element.find( "svg " ).html( defs );
+			this.$element.find( "svg" ).eq(0 ).html( defs );
 
 			svg.append( "style" ).text( embedStyle );
 
 			this._rotation = 0;
-
+			
+			this._svg = svg;
 			this._root = svg.append( "g" )
 				.attr( "class", "root" );
 
@@ -698,7 +710,7 @@ function(
 			var w = this._w;
 			var h = this._h;
 
-			var svg = d3.select( this.$element[0] ).select( "svg" );
+			var svg = this._svg;
 
 			_update.call( this, this._data );
 
@@ -726,11 +738,84 @@ function(
 				}.bind( this ), 30 )
 
 			}.bind( this ) );
+			
+			var self = this,
+				start,
+				end;
+
+			function onTap( e, d ) {
+				if ( !self.mySelections.active && e && e.shiftKey ) {
+					toggle.call( self, d );
+					return;
+				}
+
+				if ( !self.selectionsEnabled ) {
+					return;
+				}
+
+				selections.select.call( self, d );
+				_update.call( self, d );
+			}
+
+			Touche( this.$element[0] ).swipe( {
+				id: '.mek-tree',
+				options: {
+					touches: 1,
+					threshold: 10
+				},
+				start: function ( e, data ) {
+					if ( self.mySelections.active || self._layout.qHyperCube.qAlwaysFullyExpanded ) {
+						return;
+					}
+					start = {
+						x: data.pagePoints[0].x,
+						y: data.pagePoints[0].y,
+						data: d3.select( data.relatedTarget ).data()
+					};
+				},
+				update: function () {
+					Touche.preventGestures( this.gestureHandler );
+				},
+				end: function ( e, data ) {
+					var dir = data.swipe.direction,
+						angle,
+						d;
+
+					if ( !start || !start.data[0] ) {
+						return;
+					}
+					Touche.preventGestures( this.gestureHandler );
+					var d = start.data[0];
+
+					if ( !self._isRadial ) {
+						if ( dir === 'left' && d.canExpand || dir === 'right' && d.canCollapse ) {
+							toggle.call( self, d );
+						}
+					}
+					else {
+						angle = Math.abs( data.swipe.angle - ( d.x + 90 ) % 360 );
+						if ( d.canExpand && angle < 30 || d.canCollapse && Math.abs( angle - 180 ) < 30 ) {
+							toggle.call( self, d );
+						}
+					}
+				}
+			} )
+				.tap( {
+					id: '.mek-tree',
+					end: function ( e, data ) {
+						var s = data.relatedTarget && data.relatedTarget.parentElement ? data.relatedTarget.parentElement.className : '';
+						s = s.baseVal || s;
+						if ( s.match(/node-selectable/) ) {
+							onTap( e, d3.select(data.relatedTarget ).data()[0] )
+						}
+					}
+				} );
 		},
 		off: function () {
 			clearTimeout( this._rotationTimer );
 			this._super();
 			this.$element.off( "mousewheel DOMMouseScroll" );
+			Touche( this.$element[0] ).off( "*", '.mek-tree' );
 		},
 		paint: function ( $element, layout ) {
 
@@ -772,7 +857,7 @@ function(
 			var rootTransform = this._isRadial ? "translate(" + w / 2 + "," + h / 2 + ")" :
 			"translate(" + this._padding.left + ", 0)";
 
-			var svg = d3.select( this.$element[0] ).select( "svg" );
+			var svg = this._svg;
 			svg.attr( "width", w )
 				.attr( "height", h )
 				.select( ".root" )
