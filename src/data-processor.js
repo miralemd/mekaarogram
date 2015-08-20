@@ -49,15 +49,18 @@ function(
 					return n.qType !== "T" && n.qType !== 'E';
 				} ).map( function( node ) {
 					return nest( node, depth + 1);
-				} ).filter( function() {
-					return n.qType !== "A";
-				});
+				} ).filter( function( n ) {
+					return n.type !== "A"; 
+				} );
+					
 			}
 			return ret;
 		}
 
 		var children = pages.qLeft.map( function( node ) {
 			return nest( node, 0 );
+		} ).filter( function( n ){
+			return n.type !== 'A';
 		} );
 
 		var data = {

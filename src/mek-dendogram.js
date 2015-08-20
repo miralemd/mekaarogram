@@ -382,10 +382,10 @@ function(
 					if ( l.spacingAdded ) {
 						treeWidth += l.spacingAdded;
 						if ( i === 0 ) {
-							self.padding._left -= l.spacingAdded;
+							self._padding.left -= l.spacingAdded;
 						}
 						else if( i === levels.length - 1) {
-							self.padding._right -= l.spacingAdded;
+							self._padding.right -= l.spacingAdded;
 						}
 					}
 				}
@@ -922,7 +922,9 @@ function(
 		}
 	} );
 	
-	components.addComponent("pivot-sorting", pivotSorting);
+	if( !components.hasComponent( "pivot-sorting" ) ) {
+		components.addComponent( "pivot-sorting", pivotSorting );
+	}
 
 	return {
 		definition: properties,
@@ -948,7 +950,7 @@ function(
 			},
 			measures: {
 				min: 1,
-				max: 2
+				max: 1
 			}
 		},
 		View: DendrogramView,

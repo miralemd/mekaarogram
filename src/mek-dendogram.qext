@@ -1,7 +1,7 @@
 {
 	"name" : "Dendrogram",
-	"description" : "Dendrogram description",
+	"description" : "v0.1.10",
 	"type" : "visualization",
-	"version": "0.5",
+	"version": "0.1.10",
 	"author": "Miralem Drek"
 }
