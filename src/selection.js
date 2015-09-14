@@ -39,7 +39,7 @@ function(
 					obj.deactivated();
 				};
 				$scope.selectionsApi.clear = function () {
-					clearSelections.call( obj, false );
+					clearSelections.call( obj, true );
 					$scope.backendApi.clearSelections();
 					$scope.selectionsApi.selectionsMade = false;
 					obj.resize();
@@ -52,10 +52,12 @@ function(
 			}
 
 			if ( !qValues.length ) {
-				obj.backendApi.clearSelections();
+				//obj.backendApi.clearSelections();
+				obj.$scope.selectionsApi.clear();
 			}
 			else {
 				obj.backendApi.select( qValues, [qDimNo], 'L' );
+				obj.$scope.selectionsApi.selectionsMade = true;
 			}
 		},
 		select: function select ( node ) {
