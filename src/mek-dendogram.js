@@ -197,7 +197,7 @@ function(
 		var self = this,
 			radius = this._radius,
 			levels = this._levels,
-			maxNumLevels = this._layout.qHyperCube.qDimensionInfo.length,
+			maxNumLevels = levels.length,//this._layout.qHyperCube.qDimensionInfo.length,
 			temp,
 			isRadial = this._isRadial;
 
