@@ -561,16 +561,16 @@ function(
 			if ( d.canExpand || d.canCollapse ) {
 				classes.push( 'node-expandable' );
 			}
-			if ( !self.mySelections.active && !d.isLocked || ( self.mySelections.active && self.mySelections.col === d.col ) ) {
+			if ( !d.isLocked ) {
 				classes.push( "node-selectable" );
 			}
 			if ( self.mySelections.active ) {
-				if ( d.elemNo in self._selectedElemNo ) {
+				if ( d.col in self._selectedElemNo && d.elemNo in self._selectedElemNo[d.col] ) {
 					classes.push( 'node-selected' );
 				}
-				if ( self.mySelections.col !== d.col ) {
-					classes.push( 'unselectable' );
-				}
+				//if ( self.mySelections.col !== d.col ) {
+				//	classes.push( 'unselectable' );
+				//}
 			}
 
 			return classes.join( " " );
@@ -897,9 +897,9 @@ function(
 		getSelectionToolbar: function () {
 			return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [], [] );
 		},
-		selectValues: function ( qDimNo, qValues ) {
+		selectValues: function ( cells ) {
 			
-			selections.selectValues( this, qDimNo, qValues );
+			selections.selectValues( this, cells );
 			/*
 			if ( !this.selectionsEnabled ) {
 				return;

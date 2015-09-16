@@ -14,9 +14,18 @@ function(
 			this._root.attr( "class", "root" );
 		}
 	}
+
+	function selectCells( cells ) {
+		switch ( this.model.layout.qHyperCube.qMode ) {
+			case "P":
+				return this.model.rpc( "SelectPivotCells", null, [this.path, cells] );
+			default:
+				throw "you are using a non-supported backend-api";
+		}
+	}
 	
 	return {
-		selectValues: function ( obj, qDimNo, qValues ) {
+		selectValues: function ( obj, cells ) {
 			if ( !obj.selectionsEnabled ) {
 				return;
 			}
@@ -51,12 +60,17 @@ function(
 				$scope.selectionsApi.selectionsMade = true;
 			}
 
-			if ( !qValues.length ) {
+			if ( !cells.length ) {
 				//obj.backendApi.clearSelections();
 				obj.$scope.selectionsApi.clear();
 			}
 			else {
-				obj.backendApi.select( qValues, [qDimNo], 'L' );
+				if ( cells ) {
+					selectCells.call( obj.backendApi, cells  )
+				}
+				//else {
+				//	obj.backendApi.select( qValues, [qDimNo], 'L' );
+				//}
 				obj.$scope.selectionsApi.selectionsMade = true;
 			}
 		},
@@ -73,33 +87,32 @@ function(
 			if ( !this._selectedElemNo ) {
 				this._selectedElemNo = {};
 			}
-
-			if ( this.mySelections.active ) {
-				if ( node.col !== this.mySelections.col ) {
-					return;
-				}
+			if ( !this._selectedElemNo[node.col] ) {
+				this._selectedElemNo[node.col] = {};
 			}
-			else {
+
+			if ( !this.mySelections.active ) {
 				this.mySelections.active = true;
 				this._root.attr( "class", "root inSelections" );
-				this.mySelections.col = node.col;
 			}
 
-			var selected = !(node.elemNo in this._selectedElemNo);
+			var selected = !(node.elemNo in this._selectedElemNo[node.col]);
 
 			if ( !selected ) {
-				delete this._selectedElemNo[node.elemNo];
+				delete this._selectedElemNo[node.col][node.elemNo];
 			}
 			else {
-				this._selectedElemNo[node.elemNo] = node.row;
+				this._selectedElemNo[node.col][node.elemNo] = node.row;
 			}
-
-			var selectedRows = [];
-			for ( var e in this._selectedElemNo ) {
-				selectedRows.push( this._selectedElemNo[e] );
+			
+			var cells = [];
+			for ( var col in this._selectedElemNo ) {
+				for ( var elemNo in this._selectedElemNo[col] ) {
+					cells.push( {qType: 'L', qCol: Number(col), qRow: this._selectedElemNo[col][elemNo] } );
+				}
 			}
-
-			this.selectValues( node.col, selectedRows );
+			console.log( cells );
+			this.selectValues( cells );
 		}
 	};
 } ); 
