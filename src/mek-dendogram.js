@@ -41,6 +41,7 @@ function(
 
 	var embedStyle = "/* <![CDATA[ */ " + style + " /* ]]> */";
 	var duration = 500;
+	var namespace = ".mekDendrogram";
 	
 	/*
 	function select ( node ) {
@@ -753,6 +754,19 @@ function(
 			var self = this,
 				dataPoint;
 
+			$( document ).on( "keyup" + namespace, function ( e ) {
+				if ( !self.backendApi.inSelections() ) {
+					return;
+				}
+				if ( e.which === 27 ) {
+					self.$scope.selectionsApi.cancel();
+				}
+				else if ( e.which === 13 ) {
+					self.$scope.selectionsApi.confirm();
+				}
+			} );
+			
+
 			function onTap( e, d ) {
 				if ( !self.mySelections.active && e && e.shiftKey ) {
 					toggle.call( self, d );
@@ -768,7 +782,7 @@ function(
 			}
 
 			Touche( this.$element[0] ).swipe( {
-				id: '.mek-tree',
+				id: namespace,
 				options: {
 					touches: 1,
 					threshold: 10
@@ -807,7 +821,7 @@ function(
 				}
 			} )
 				.tap( {
-					id: '.mek-tree',
+					id: namespace,
 					end: function ( e, data ) {
 						var s = data.relatedTarget && data.relatedTarget.parentElement ? data.relatedTarget.parentElement.className : '';
 						s = s.baseVal || s;
@@ -821,7 +835,8 @@ function(
 			clearTimeout( this._rotationTimer );
 			this._super();
 			this.$element.off( "mousewheel DOMMouseScroll" );
-			Touche( this.$element[0] ).off( "*", '.mek-tree' );
+			$( document ).off( "keyup" + namespace );
+			Touche( this.$element[0] ).off( "*", namespace );
 		},
 		paint: function ( $element, layout ) {
 
