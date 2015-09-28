@@ -48,6 +48,16 @@ define( [], function () {
 							//	defaultValue: true,
 							//	label: "Show root"
 							//},
+							nodeSize: {
+								type: "array",
+								component: "slider",
+								ref: "dataPoint.size",
+								translation: "properties.dataPoints.bubbleSizes",
+								min: 0.1,
+								max: 1,
+								step: 0.05,
+								defaultValue: [0.2, 0.8]
+							},
 							expanded: {
 								ref: "qHyperCubeDef.qAlwaysFullyExpanded",
 								type: "boolean",

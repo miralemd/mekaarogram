@@ -204,18 +204,26 @@ function(
 
 		var maxLevelNodes = Math.max.apply( null, levels );
 
-		var minPointSize = 2;
-		var maxPointSize = 40;
+		var minPointSize = 40 * (self._layout.dataPoint && self._layout.dataPoint.size ? self._layout.dataPoint.size[0] : 1);
+		var maxPointSize = 40 * ( self._layout.dataPoint && self._layout.dataPoint.size ? self._layout.dataPoint.size[1] : 1);
 
 		if ( isRadial ) {
-			var maxArcLength = Math.PI * radius / maxLevelNodes;
-			maxPointSize = Math.min( maxPointSize, Math.max( maxArcLength / 2, minPointSize * 4 ) );
-			minPointSize = Math.max( minPointSize, Math.min( maxPointSize / 4, maxArcLength / 8 ) );
+			var maxArcLength = 0.5 * Math.PI * radius / maxLevelNodes;
+			if( maxPointSize > maxArcLength ) {
+				minPointSize = Math.max( 2, minPointSize * maxArcLength / maxPointSize );
+				maxPointSize = Math.max( minPointSize, maxArcLength );
+			}
+			//maxPointSize = Math.min( maxPointSize, Math.max( maxArcLength / 2, minPointSize * 4 ) );
+			//minPointSize = Math.max( minPointSize, Math.min( maxPointSize / 4, maxArcLength / 8 ) );
 		}
 		else {
-			var boo = Math.min( self._width / maxLevelNodes, self._height / levels.length );
-			minPointSize = Math.max( minPointSize, boo / 8 );
-			maxPointSize = Math.max( minPointSize, Math.min( maxPointSize, Math.max( boo / 2, 2 ) ) );
+			var boo = 0.5 * Math.min( self._width / maxLevelNodes, self._height / levels.length );
+			if( maxPointSize > boo ) {
+				minPointSize = Math.max( 2, minPointSize * boo / maxPointSize );
+				maxPointSize = Math.max( minPointSize, boo );
+			}
+			//minPointSize = Math.max( minPointSize, boo / 8 );
+			//maxPointSize = Math.max( minPointSize, Math.min( maxPointSize, Math.max( boo / 2, 2 ) ) );
 		}
 
 		self._pointSize = {min: minPointSize, max: maxPointSize};
