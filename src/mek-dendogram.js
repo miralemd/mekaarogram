@@ -345,6 +345,8 @@ function(
 			}
 			levelNodes[n.depth].push( n );
 		} );
+		
+		this.levelNodes = levelNodes;
 
 		if ( tree === radialTree ) {
 			nodes.forEach( function ( d ) {
@@ -556,21 +558,33 @@ function(
 			//} );
 
 		nodeUpdate.attr( "class", function ( d ) {
-			var classes = ['node'];
+			var classes = ['node'],
+				cellId = d.col + ";" + d.row;
 			classes.push( (d.children || d._children) ? 'branch' : 'leaf' );
 			if ( d.canExpand || d.canCollapse ) {
 				classes.push( 'node-expandable' );
 			}
-			if ( !d.isLocked ) {
+			if ( !d.isLocked && (!self.mySelections.active || self.mySelections.active && self.mySelections.col === d.col) ) {
 				classes.push( "node-selectable" );
 			}
 			if ( self.mySelections.active ) {
-				if ( d.col in self._selectedElemNo && d.elemNo in self._selectedElemNo[d.col] ) {
+				if( !self._isPathSelectActive ) {
+					if ( d.col in self._selectedElemNo && d.elemNo in self._selectedElemNo[d.col] ) {
+						classes.push( 'node-selected' );
+					}
+					else if ( self.mySelections.col !== d.col ) {
+						classes.push( 'unselectable' );
+					}
+				}
+				else if( self._selectedCells && (cellId in self._selectedCells) ) {
 					classes.push( 'node-selected' );
 				}
-				//if ( self.mySelections.col !== d.col ) {
-				//	classes.push( 'unselectable' );
-				//}
+				else if( self._pathSelected && self._pathSelected[cellId] ) {
+					classes.push( 'node-semi-selected' );
+				}
+				else if ( self.mySelections.col !== d.col ) {
+					classes.push( 'unselectable' );
+				}
 			}
 
 			return classes.join( " " );
@@ -630,11 +644,20 @@ function(
 			.attr( "d", diagonal );
 
 		// Transition links to their new position.
-		link.transition()
+		var linkUpdate = link.transition()
 			.duration( duration )
 			.style( 'stroke-width', sizeFn )
 			.attr( "d", diagonal );
-
+		
+		linkUpdate.attr( "class", function( d ) {
+			var s = "link",
+				cellId = d.target.col + ";" + d.target.row;
+			if( self._isPathSelectActive && (cellId in self._selectedCells || self._pathSelected[cellId]) ) {
+				s += " semi-selected";
+			}
+			return s;
+		} );
+		
 		// Transition exiting nodes to the parent's new position.
 		link.exit().transition()
 			.duration( duration )
@@ -894,12 +917,46 @@ function(
 				.duration( duration )
 				.attr( "transform", rootTransform );
 		},
-		getSelectionToolbar: function () {
-			return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [], [] );
+		togglePathSelect: function() {
+			this._isPathSelectActive = !this._isPathSelectActive;
+			if ( this.mySelections.active ) {
+				selections.switchSelectionModel.call( this, this._isPathSelectActive );
+				//selections.select.call( this );
+			}
+			_update.call( this, this._data );
 		},
-		selectValues: function ( cells ) {
+		isPathSelectionActive: function() {
+			return this._isPathSelectActive;
+		},
+		isPathSelectionDisabled: function() {
+			return this._layout && this._layout.qHyperCube.qDimensionInfo.length < 2;
+		},
+		getSelectionToolbar: function () {
+			var view = this;
+			return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [{
+				  name: "Select path",
+				  isIcon: true,
+				  buttonClass: "sel-toolbar-icon-toggle",
+				  iconClass: "icon-toolbar-follow",
+				  action: function () {
+					  view.togglePathSelect();
+				  },
+				  isActive: function () {
+					  var active = view.isPathSelectionActive();
+					  this.name = active ? "Turn off full path selection" : "Turn on full path selection";
+					  return active;
+				  },
+				  isDisabled: function () {
+					  if ( view.isPathSelectionDisabled() ) {
+						  return true;
+					  }
+					  return false;
+				  }
+				}], [] );
+		},
+		selectValues: function ( cells, clearOld ) {
 			
-			selections.selectValues( this, cells );
+			selections.selectValues( this, cells, clearOld );
 			/*
 			if ( !this.selectionsEnabled ) {
 				return;

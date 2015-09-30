@@ -28,12 +28,21 @@ text {
 	opacity: 0.0;
 }
 
+.inSelections .link.semi-selected {
+	opacity: 0.2;
+}
+
 .inSelections .node:not(.node-selected) {
 	opacity: 0.5;
 }
 
+.inSelections .node-semi-selected {
+	opacity: 0.8 !important;
+}
+
 .inSelections .node.unselectable {
-	opacity: 0.05;
+	opacity: 0.15;
+	cursor: default;
 }
 /*
 .inTransition text, .inTransition circle use {
