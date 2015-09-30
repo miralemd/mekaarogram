@@ -2,7 +2,9 @@
 define( [
 	'jquery',
 	'qvangular',
+	'translator',
 	'./properties',
+	'./locales',
 	'objects.extension/controller',
 	'objects.extension/default-view',
 	'objects.extension/object-conversion',
@@ -23,7 +25,9 @@ define( [
 function(
 	$,
 	qvangular,
+	translator,
 	properties,
+	locales,
 	Controller,
 	DefaultView,
 	objectConversion,
@@ -42,6 +46,8 @@ function(
 	var embedStyle = "/* <![CDATA[ */ " + style + " /* ]]> */";
 	var duration = 500;
 	var namespace = ".mekDendrogram";
+	
+	translator.append( locales[translator.language] || locales["en-US"] );
 	
 	/*
 	function select ( node ) {
@@ -934,7 +940,7 @@ function(
 		getSelectionToolbar: function () {
 			var view = this;
 			return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [{
-				  name: "Select path",
+				  name: "",
 				  isIcon: true,
 				  buttonClass: "sel-toolbar-icon-toggle",
 				  iconClass: "icon-toolbar-follow",
@@ -943,7 +949,7 @@ function(
 				  },
 				  isActive: function () {
 					  var active = view.isPathSelectionActive();
-					  this.name = active ? "Turn off full path selection" : "Turn on full path selection";
+					  this.name = active ? "mek.turnOffPathSelect" : "mek.turnOnPathSelect";
 					  return active;
 				  },
 				  isDisabled: function () {

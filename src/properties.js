@@ -68,13 +68,13 @@ define( [], function () {
 								type: "boolean",
 								ref: "adaptiveStrokeWidth",
 								defaultValue: true,
-								label: "Dynamic link width"
+								translation: "mek.dynamicLinkWidth"
 							},
 							radial: {
 								type: "boolean",
 								ref: "radial",
 								defaultValue: false,
-								label: "Radial"
+								translation: "mek.radial"
 							}
 						}
 					}
