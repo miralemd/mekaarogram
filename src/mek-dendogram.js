@@ -43,11 +43,12 @@ function(
 	style
 ) {
 
-	var embedStyle = "/* <![CDATA[ */ " + style + " /* ]]> */";
 	var duration = 500;
 	var namespace = ".mekDendrogram";
 	
 	translator.append( locales[translator.language] || locales["en-US"] );
+	
+	$( "<style>" + style + "</style>" ).appendTo( "head" );
 	
 	/*
 	function select ( node ) {
@@ -727,6 +728,7 @@ function(
 		init: function () {
 			this._super.apply( this, arguments );
 
+			this.$element.addClass( "mek-dendrogram" );
 			d3.select( this.$element[0] ).append( "svg" )
 				.attr( {
 					xmlns: "http://www.w3.org/2000/svg",
@@ -742,7 +744,7 @@ function(
 
 			this.$element.find( "svg" ).eq(0 ).html( defs );
 
-			svg.append( "style" ).text( embedStyle );
+			//svg.append( "style" ).text( embedStyle );
 
 			this._rotation = 0;
 			

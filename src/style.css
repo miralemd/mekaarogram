@@ -1,51 +1,51 @@
-.link {
+.mek-dendrogram .link {
 	fill: none;
 	stroke: #aaa;
 	stroke-linecap: round;
+	stroke-width: 1px;
 	opacity: 0.4;
 }
 
-text {
+.mek-dendrogram text {
 	fill: #666;
+	font-weight: normal;
+	font-family: "QlikView Sans", sans-serif;
+	font-size: 13px;
+	opacity: 1.0;
 }
-.node.node-expandable {
+
+.mek-dendrogram .node.node-expandable {
 	font-weight: bold;
 }
 
-.node circle {
+.mek-dendrogram .node circle {
 	fill: #CDECD8;
+	stroke: transparent;
+	stroke-width: 0;
+	opacity: 1.0;
 }
 
-.node.node-selectable {
+.mek-dendrogram .node.node-selectable {
 	cursor: pointer;
 }
 
-.leaf circle {
-	fill: white;
-}
-
-.inSelections .link {
+.mek-dendrogram .inSelections .link {
 	opacity: 0.0;
 }
 
-.inSelections .link.semi-selected {
+.mek-dendrogram .inSelections .link.semi-selected {
 	opacity: 0.2;
 }
 
-.inSelections .node:not(.node-selected) {
+.mek-dendrogram .inSelections .node:not(.node-selected) {
 	opacity: 0.5;
 }
 
-.inSelections .node-semi-selected {
+.mek-dendrogram .inSelections .node-semi-selected {
 	opacity: 0.8 !important;
 }
 
-.inSelections .node.unselectable {
+.mek-dendrogram .inSelections .node.unselectable {
 	opacity: 0.15;
 	cursor: default;
 }
-/*
-.inTransition text, .inTransition circle use {
-	display: none;
-}
-*/
