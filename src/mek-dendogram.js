@@ -684,7 +684,7 @@ function(
 
 		var checkEmoticonNode = function ( d ) {
 
-			if ( !d.emoticon || d.nodeSize < 8 ) {
+			if ( !d.symbol || d.nodeSize < 8 ) {
 				d3.select( this ).select( "use" ).remove();
 				return;
 			}
@@ -692,11 +692,11 @@ function(
 			var t = this.querySelector( "use" );
 			if ( !t ) { // enter
 				d3.select( this ).append( "use" )
-					.attr( "xlink:href", '#' + d.emoticon )
+					.attr( "xlink:href", d.symbol )
 					.attr( "transform", "scale(0.001, 0.001) translate(-370, -540)" );
 			}
 			else {
-				t.setAttribute( "href", '#' + d.emoticon );
+				t.setAttribute( "href", d.symbol );
 			}
 		};
 

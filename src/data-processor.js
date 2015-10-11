@@ -1,21 +1,12 @@
 define( [
-	'general.utils/color'
+	"general.utils/color",
+	"./symbols"
 ],
 /** @owner Miralem Drek (mek) */
 function(
-	Color
+	Color,
+	symbols
 ){
-
-	var emoticons = {
-		':)': 'smile',
-		':(': 'sad',
-		':|': 'meh'
-		},
-		emoticonColors = {
-			':)': '#8BC34A',
-			':|': '#FFEB3B',
-			':(': '#F44336'
-		};
 	
 	function processData( layout ) {
 		var pages = layout.qHyperCube.qPivotDataPages[0];
@@ -75,18 +66,18 @@ function(
 				// size
 				n.size = isNaN( n.values[0].qNum ) ? 1 : n.values[0].qNum;
 
-				//emoticon
+				//symbol
 				if ( n.values[0].qAttrExps && n.values[0].qAttrExps.qValues && n.values[0].qAttrExps.qValues[1] ) {
-					var emoticon = n.values[0].qAttrExps.qValues[1].qText;
-					if ( emoticon && emoticons[emoticon]) {
-						n.emoticon = emoticons[emoticon];
+					var symbol = n.values[0].qAttrExps.qValues[1].qText;
+					if ( symbol && symbols[symbol] ) {
+						n.symbol = symbols[symbol].url;
 					}
 					else {
-						delete n.emoticon;
+						delete n.symbol;
 					}
 				}
 				else {
-					delete n.emoticon;
+					delete n.symbol;
 				}
 				
 				//color
@@ -101,8 +92,8 @@ function(
 						delete n.color;
 					}
 				}
-				else if ( emoticon && emoticonColors[emoticon] ) {
-					n.color = new Color( emoticonColors[emoticon] );
+				else if ( n.symbol && symbols[symbol].color ) {
+					n.color = new Color( symbols[symbol].color );
 				}
 				else {
 					delete n.color;
