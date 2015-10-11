@@ -175,7 +175,7 @@ function(
 				this._selectedCells = {};
 				this._pathSelected = {};
 				
-				var nodes = this.levelNodes[this.mySelections.col+1];
+				var nodes = this.levels[this.mySelections.col].nodes;
 				nodes.forEach( function( node ) {
 					if ( node.elemNo in this._selectedElemNo[node.col] ) {
 						this._selectedCells[ node.col + ";" + node.row ] = node.elemNo;

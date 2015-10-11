@@ -638,7 +638,6 @@ function(
 			var self = d3.select( this ),
 				dx, dy,
 				width = 'textWidth' in d ? d.textWidth : levels[d.depth-1].textWidth,
-				padding = 0,
 				approxFit,
 				textLength,
 				text;
@@ -650,7 +649,7 @@ function(
 				approxFit = Math.ceil( width / (textLength / text.length) );
 				text = text.slice( 0, approxFit );
 			}
-			while ( textLength > (width - 2 * padding) && text.length > 0 ) {
+			while ( textLength > width && text.length > 0 ) {
 				text = text.slice( 0, -1 );
 				self.text( text + '…' );
 				textLength = self.node().getComputedTextLength();
@@ -659,20 +658,21 @@ function(
 
 		var checkTextNode = function ( d ) {
 			if ( d.showLabel === false || levels[d.depth-1].showLabels === false ) {
-				d3.select( this ).select( "text" ).remove();
+				d3.select( this ).select( ".label" ).remove();
 				return;
 			}
 
-			var t = this.querySelector( "text" );
+			var t = this.querySelector( ".label" );
 			if ( !t ) { // enter
 				d3.select( this ).append( "text" )
 					.text( d.name )
 					.attr( "dy", ".35em" )
+					.attr( 'class',  "label" )
 					.style( "fill-opacity", 1e-6 );
 			}
 
 			// update
-			d3.select( this ).select( "text" )
+			d3.select( this ).select( ".label" )
 				.text( d.name )
 				.each( wrap )
 				.attr( "text-anchor", labelAlignment )
@@ -718,7 +718,7 @@ function(
 		nodeExit.select( "circle" )
 			.attr( "r", 1e-6 );
 
-		nodeExit.select( "text" )
+		nodeExit.select( ".label" )
 			.style( 'fill-opacity', 1e-6 );
 
 		var links = tree.links( nodes );
@@ -969,6 +969,7 @@ function(
 			//data = data.root;
 			this._data = data;
 			this._layout = layout;
+			this.levels = data.levels;
 			//this._minMax = getMinMax( data.root, 'size' );
 
 			_updateSize.call( this );
