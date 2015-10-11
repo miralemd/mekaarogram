@@ -3,6 +3,7 @@ define( [
 	'jquery',
 	'qvangular',
 	'translator',
+	"general.utils/color",
 	'./properties',
 	'./locales',
 	'objects.extension/controller',
@@ -26,6 +27,7 @@ function(
 	$,
 	qvangular,
 	translator,
+	Color,
 	properties,
 	locales,
 	Controller,
@@ -46,6 +48,7 @@ function(
 	var duration = 500;
 	var namespace = ".mekDendrogram";
 	var PADDING = 4;
+	var defaultColor = 'rgb(100, 150, 150)';
 	
 	translator.append( locales[translator.language] || locales["en-US"] );
 	
@@ -90,7 +93,7 @@ function(
 	};
 
 	var colorFn = function ( d ) {
-		return ( d.target ? d.target.color : d.color ) || 'rgb(100, 150, 150)';
+		return ( d.target ? d.target.color : d.color ) || defaultColor;
 	};
 
 	var strokeColorFn = function ( d ) {
@@ -656,7 +659,7 @@ function(
 			}
 		};
 
-		var checkTextNode = function ( d ) {
+		var checkLabelNode = function ( d ) {
 			if ( d.showLabel === false || levels[d.depth-1].showLabels === false ) {
 				d3.select( this ).select( ".label" ).remove();
 				return;
@@ -681,27 +684,64 @@ function(
 				.duration( duration )
 				.style( "fill-opacity", 1 );
 		};
-
-		var checkEmoticonNode = function ( d ) {
+		
+		var checkSymbolNode = function ( d ) {
 
 			if ( !d.symbol || d.nodeSize < 8 ) {
-				d3.select( this ).select( "use" ).remove();
+				d3.select( this ).select( ".symbol" ).remove();
 				return;
 			}
-
-			var t = this.querySelector( "use" );
-			if ( !t ) { // enter
-				d3.select( this ).append( "use" )
-					.attr( "xlink:href", d.symbol )
-					.attr( "transform", "scale(0.001, 0.001) translate(-370, -540)" );
+			
+			var t;
+			
+			if ( /^#/.exec( d.symbol ) ) {// svg link
+				d3.select( this ).select( ".symbol-text" ).remove(); // remove other types of symbols
+				
+				t = this.querySelector( ".symbol-svg" );
+				if ( !t ) { // enter
+					d3.select( this ).append( "use" )
+						.attr( "class", "symbol symbol-svg" )
+						.attr( "xlink:href", d.symbol )
+						.attr( "transform", "scale(0.001, 0.001) translate(-370, -540)" );
+				}
+				else {
+					t.setAttribute( "href", d.symbol );
+				}
 			}
-			else {
-				t.setAttribute( "href", d.symbol );
+			else { // text, icon
+				d3.select( this ).select( ".symbol-svg" ).remove(); // remove other types of symbols
+				t = this.querySelector( ".symbol-text" );
+				var symbol = d.symbol;
+				
+				var isIcon = /^\(([0-9]{2,3})\)$/.exec( symbol );
+				if ( isIcon ) {
+					symbol = String.fromCharCode(isIcon[1]);
+				}
+				if ( !t ) { // enter
+					d3.select( this ).append( "text" )
+						.text( symbol )
+						.attr( "text-anchor", "middle")
+						.attr( 'class',  "symbol symbol-text" )
+						.style( "fill-opacity", 1e-6 );
+				}
+
+				// update
+				var fontSize = sizeFn( d );
+				var color = 'color' in d ? d.color : defaultColor; 
+				var isDarkBackColor = Color.isDark( d.color ); 
+				d3.select( this ).select( ".symbol-text" )
+					.text( symbol )
+					.attr( "class", "symbol symbol-text" + (isIcon ? " symbol-icon" : "") )
+					.transition()
+					.duration( duration )
+					.style( "fill", isDarkBackColor ? "#fff" : "#666")
+					.style( "fill-opacity", 1 )
+					.style( "font-size", fontSize * 1.2 )
 			}
 		};
 
-		nodeUpdate.each( checkTextNode );
-		nodeUpdate.each( checkEmoticonNode );
+		nodeUpdate.each( checkLabelNode );
+		nodeUpdate.each( checkSymbolNode );
 
 		nodeUpdate.select( "use" )
 			.attr( "transform", function ( d ) {

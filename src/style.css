@@ -6,7 +6,7 @@
 	opacity: 0.4;
 }
 
-.mek-dendrogram text {
+.mek-dendrogram .label {
 	fill: #666;
 	font-weight: normal;
 	font-family: "QlikView Sans", sans-serif;
@@ -14,6 +14,16 @@
 	opacity: 1.0;
 	
 	text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+}
+
+.mek-dendrogram .symbol-text {
+	font-family: "QlikView Sans", sans-serif;
+	alignment-baseline: central;
+}
+
+.mek-dendrogram .symbol-icon {
+	font-family: "QlikView Icons";
+	alignment-baseline: middle;
 }
 
 .mek-dendrogram .node.node-expandable {

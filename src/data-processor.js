@@ -72,6 +72,12 @@ function(
 					if ( symbol && symbols[symbol] ) {
 						n.symbol = symbols[symbol].url;
 					}
+					else if( /^[A-z0-9]{1}$/.exec( symbol ) ) { // text
+						n.symbol = symbol;
+					}
+					else if( /^\([0-9]{2,3}?\)$/.exec( symbol ) ) { // icon
+						n.symbol = symbol;
+					}
 					else {
 						delete n.symbol;
 					}
@@ -92,7 +98,7 @@ function(
 						delete n.color;
 					}
 				}
-				else if ( n.symbol && symbols[symbol].color ) {
+				else if ( n.symbol && symbols[symbol] && symbols[symbol].color ) {
 					n.color = new Color( symbols[symbol].color );
 				}
 				else {
