@@ -11,8 +11,8 @@ gulp.task( 'default', function () {
 gulp.task( 'lint', function () {
 	return gulp.src( ['./src/*.js', '!./src/d3.js'] )
 		.pipe( eslint() )
-		.pipe( eslint.format() )
-		.pipe( eslint.failOnError() );
+		.pipe( eslint.format() );
+		//.pipe( eslint.failOnError() );
 } );
 
 gulp.task( 'copy', function () {

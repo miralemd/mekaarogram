@@ -125,15 +125,24 @@ function(
 		mapValuesToProperties( data );
 		generateId( data, '');
 
+		var totalGlyphCount = 0;
 		var levels = [];
 		function collect( arr, i ) {
 			if ( !arr ) {
 				return;
 			}
 			if ( !levels[i] ) {
-				levels[i] = 0;
+				levels[i] = {
+					nodes: [],
+					min: Number.MAX_VALUE,
+					max: -Number.MAX_VALUE,
+					glyphCount: layout.qHyperCube.qDimensionInfo[i].qApprMaxGlyphCount,
+					depth: i
+				};
+				totalGlyphCount += levels[i].glyphCount;
 			}
-			levels[i] += arr ? arr.length : 0;
+			levels[i].nodes = levels[i].nodes.concat( arr );
+			//levels[i] += arr ? arr.length : 0;
 			arr.forEach( function( c ) {
 				if ( c.children && c.children.length ) {
 					collect( c.children, i+1 );
@@ -143,9 +152,68 @@ function(
 
 		collect( data.name === '_root' ? data.children : [data], 0 );
 
+		//var totalGlyphCount = 0;
+		
+		//levels.forEach( function( level ) {
+		//	totalGlyphCount += layout.qHyperCube.qDimensionInfo[depth].qApprMaxGlyphCount;
+		//	level.numNodes = level.nodes.length;
+		//} );
+		
+		/*
+		levels = levels.map( function( numNodes, depth ) {
+			totalGlyphCount += layout.qHyperCube.qDimensionInfo[depth].qApprMaxGlyphCount;
+			return {
+				numNodes: numNodes,
+				depth: depth,
+				glyphCount: layout.qHyperCube.qDimensionInfo[depth].qApprMaxGlyphCount,
+				min: Number.MAX_VALUE,
+				max: -Number.MAX_VALUE
+			}
+		} );
+		*/
+		
+		levels.forEach( function( level ) {
+			level.glyphCountWeight = level.glyphCount / totalGlyphCount;
+		} );
+
+		function getMinMax ( node, prop ) {
+
+			var max = -Number.MAX_VALUE,
+				min = Number.MAX_VALUE;
+
+			if ( node.children ) {
+				node.children.forEach( function ( c ) {
+					var m = getMinMax( c, prop );
+					max = Math.max( max, m.max );
+					min = Math.min( min, m.min );
+				} );
+			}
+			if( node.name !== '_root' ) {
+				levels[node.col].min = Math.min( node[prop], levels[node.col].min );
+				levels[node.col].max = Math.max( node[prop], levels[node.col].max );
+			}
+			
+			max = Math.max( max, node[prop] );
+			min = Math.min( min, node[prop] );
+
+			if ( isNaN( max ) ) {
+				max = min = 1;
+			}
+
+			return {
+				max: max,
+				min: min
+			};
+		}
+		
+		var minMax = getMinMax( data, 'size' );
+
 		return {
-			data: data,
-			levels: levels
+			root: data,
+			levels: levels,
+			min: minMax.min,
+			max: minMax.max,
+			glyphCount: totalGlyphCount
 		};
 	}
 	

@@ -45,65 +45,11 @@ function(
 
 	var duration = 500;
 	var namespace = ".mekDendrogram";
+	var PADDING = 4;
 	
 	translator.append( locales[translator.language] || locales["en-US"] );
 	
 	$( "<style>" + style + "</style>" ).appendTo( "head" );
-	
-	/*
-	function select ( node ) {
-		if ( node.elemNo < 0 && node.elemNo !== -3 ) {
-			return;
-		}
-
-		if ( node.isLocked ) {
-			EventUtils.showLockedFeedback( [this._layout.qHyperCube.qDimensionInfo[node.col]] );
-			return;
-		}
-
-		if ( !this._selectedElemNo ) {
-			this._selectedElemNo = {};
-		}
-
-		if ( this.mySelections.active ) {
-			if ( node.col !== this.mySelections.col ) {
-				return;
-			}
-		}
-		else {
-			this.mySelections.active = true;
-			this._root.attr( "class", "root inSelections" );
-			this.mySelections.col = node.col;
-		}
-
-		var selected = !(node.elemNo in this._selectedElemNo);
-
-		if ( !selected ) {
-			delete this._selectedElemNo[node.elemNo];
-		}
-		else {
-			this._selectedElemNo[node.elemNo] = node.row;
-		}
-
-		var selectedRows = [];
-		for ( var e in this._selectedElemNo ) {
-			selectedRows.push( this._selectedElemNo[e] );
-		}
-
-		this.selectValues( node.col, selectedRows );
-	}
-	*/
-
-	/*
-	function clearSelections ( endSelections ) {
-		this._selectedElemNo = {};
-
-		if ( endSelections ) {
-			this.mySelections.active = false;
-			this._root.attr( "class", "root" );
-		}
-	}
-	*/
 
 	function onNodeMouseOver ( d, el, event, isRadial ) {
 		tooltip.current.d = d;
@@ -163,17 +109,6 @@ function(
 		}
 	}
 
-	/*function toggle(d) {
-		if ( d.children ) {
-			d._children = d.children;
-			d.children = null;
-		}
-		else if( d._children ) {
-			d.children = d._children;
-			d._children = null;
-		}
-	}*/
-
 	function getMinMax ( node, prop ) {
 
 		var max = -Number.MIN_VALUE,
@@ -199,310 +134,379 @@ function(
 			min: min
 		};
 	}
+	
+	
+	function updateSelectionStates() {
+		
+	}
+	
+	function spaceOutLinear( levels, width, labelWeight ) {
 
-	function _update( source ) {
-		clearTimeout( this._rotationTimer );
-		var self = this,
-			radius = this._radius,
-			levels = this._levels,
-			maxNumLevels = levels.length,//this._layout.qHyperCube.qDimensionInfo.length,
-			temp,
-			isRadial = this._isRadial;
-
-		var maxLevelNodes = Math.max.apply( null, levels );
-
-		var minPointSize = 40 * (self._layout.dataPoint && self._layout.dataPoint.size ? self._layout.dataPoint.size[0] : 1);
-		var maxPointSize = 40 * ( self._layout.dataPoint && self._layout.dataPoint.size ? self._layout.dataPoint.size[1] : 1);
-
-		if ( isRadial ) {
-			var maxArcLength = 0.5 * Math.PI * radius / maxLevelNodes;
-			if( maxPointSize > maxArcLength ) {
-				minPointSize = Math.max( 2, minPointSize * maxArcLength / maxPointSize );
-				maxPointSize = Math.max( minPointSize, maxArcLength );
+		var numLevelsThatNeedSpaceForLabel = 1;
+		if( levels.length > 1 ) {
+			numLevelsThatNeedSpaceForLabel = levels.length + 1;
+			if ( !levels[0].showLabels ) {
+				numLevelsThatNeedSpaceForLabel--;
 			}
-			//maxPointSize = Math.min( maxPointSize, Math.max( maxArcLength / 2, minPointSize * 4 ) );
-			//minPointSize = Math.max( minPointSize, Math.min( maxPointSize / 4, maxArcLength / 8 ) );
-		}
-		else {
-			var boo = 0.5 * Math.min( self._width / maxLevelNodes, self._height / levels.length );
-			if( maxPointSize > boo ) {
-				minPointSize = Math.max( 2, minPointSize * boo / maxPointSize );
-				maxPointSize = Math.max( minPointSize, boo );
+			if ( levels.length > 1 && !levels[levels.length - 1].showLabels ) {
+				numLevelsThatNeedSpaceForLabel--;
 			}
-			//minPointSize = Math.max( minPointSize, boo / 8 );
-			//maxPointSize = Math.max( minPointSize, Math.min( maxPointSize, Math.max( boo / 2, 2 ) ) );
 		}
+		
+		var spacing = width / (numLevelsThatNeedSpaceForLabel || 1);
+		var remainder = width - 2 * levels.reduce( function( prev, level ){ return prev + level.maxPointSize; }, 0);
+		var distanceBetween = remainder / (numLevelsThatNeedSpaceForLabel || 1);
+		var offset = 0;
 
-		self._pointSize = {min: minPointSize, max: maxPointSize};
-		self._sizing = d3.scale.linear().domain( [self._minMax.min, self._minMax.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
+		
+		
+		levels.forEach( function ( level, i, arr ) {
+			var lastLevel = levels[Math.max(0, levels.length - 1)];
+			var distanceToPrevious = spacing - level.maxPointSize - (i ? levels[i - 1].maxPointSize : 0);
+			var diff = (1 - labelWeight) * distanceBetween + labelWeight * remainder * level.glyphCountWeight - distanceToPrevious;
+			var foo = i === 0 && !level.showLabels ? level.maxPointSize : ( spacing + diff );
+			var textWidth = foo;
+			if ( i >= levels.length - 1 && lastLevel.showLabels ) {
+				offset = width - foo + lastLevel.maxPointSize;
+				textWidth -= lastLevel.maxPointSize;
+			}
+			else {
+				offset += foo;
+			}
 
-		temp = maxLevelNodes * maxPointSize / Math.PI;
+			if ( i > 0 && i < levels.length - 1 ) {
+				textWidth -= levels[i-1].maxPointSize;
+			}
 
-		var arcSize = 360;
-
-		levels = levels.map( function ( n ) {
-			return {
-				showLabels: isRadial ? (radius * 2 * Math.PI) / n > 16 : self._width / n > 8,
-				nodes: n
-			};
+			level.textWidth = textWidth - level.maxPointSize - PADDING * 2;
+			level.offset = offset;
 		} );
+	}
 
-		var treeWidth = self._height;
-		var textWidths = [];
-		var maxW;
-		if ( !isRadial ) {
-			self._padding.left = maxPointSize + maxPointSize / 6;
-			self._padding.right = maxPointSize + maxPointSize / 6;
-			
-			// if more than one level and level one visible -> add padding to left
-			if ( maxNumLevels > 1 && levels[0].showLabels ) {
-				maxW = this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12;
-				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), maxW );
-				if ( temp > 64 || temp >= 12 && temp/maxW >= 0.2 ) {
-					self._padding.left += temp + 8;
-					levels[0].spacingAdded = temp + 8;
+	function canLabelFitHorizontally( level ) {
+		var glyphCount = level.glyphCount;
+		var spaceForLabels = level.textWidth;
+		if ( !(spaceForLabels > 18 || spaceForLabels / (12 * glyphCount) > 1 ) ) {
+			level.showLabels = false;
+		}
+	}
+	
+	function canLabelFitVertically( levels, height, maxPointSize ) {
+		// set label visibility based on vertical spacing between nodes
+		levels.forEach( function ( level ) {
+			var nodes = level.nodes.slice().reverse();
+			nodes.forEach( function ( n, i, arr ) {
+				n.x += maxPointSize;
+				//n.y = i * height/arr.length;
+				var dx = 0;
+				if ( i < arr.length - 1 ) {
+					dx = Math.abs( n.x - arr[i + 1].x );
 				}
 				else {
-					levels[0].showLabels = false;
+					dx = n.x * 2.4;
 				}
-			}
-			if ( maxNumLevels === levels.length && levels[levels.length - 1] && levels[levels.length - 1].showLabels ) {
-				maxW = this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12;
-				temp = Math.min( (this._w - (maxPointSize * 2 + 8) * levels.length) * (1 / levels.length), maxW );
-				if ( temp > 64 || temp >=12 && temp/maxW >= 0.2 ) {
-					self._padding.right += temp + 8;
-					levels[levels.length - 1].spacingAdded = temp + 8;
+
+				if ( i > 0 ) {
+					dx = Math.min( dx, Math.abs( n.x - arr[i - 1].x ) );
 				}
 				else {
-					levels[levels.length - 1].showLabels = false;
+					dx = Math.min( dx, (height - n.x) * 2.4 );
 				}
-			}
-			treeWidth -= (self._padding.left + self._padding.right);
 
-			textWidths = levels.map( function ( ) {
-				return (treeWidth / (levels.length - 1 || 1)) - 8 - maxPointSize * 2;
-			} );
-
-			if ( maxNumLevels > 1 && levels[0].showLabels ) {
-				textWidths[0] = self._padding.left - 8 - maxPointSize;
-			}
-			if ( maxNumLevels === levels.length && levels[levels.length - 1] && levels[levels.length - 1].showLabels ) {
-				textWidths[levels.length - 1] = self._padding.right - 8 - maxPointSize;
-			}
-
-			textWidths.forEach( function ( w, i ) {
-				if ( !levels[0].showLabels || w < 12 || w/(this._layout.qHyperCube.qDimensionInfo[i].qApprMaxGlyphCount * 12 ) < 0.2 ) {
-					levels[i].showLabels = false;
+				if ( dx < 10 ) {
+					n.showLabel = false;
 				}
-			}, this );
-		}
-		else {
-			radius -= maxPointSize;
-			maxW = this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12;
-			temp = Math.min( (radius - (maxPointSize * 2 + 8) * levels.length) * Math.min( 0.5, 1 / levels.length ), maxW );
-			if ( levels[levels.length - 1].showLabels && ( temp >= 12 || (temp > 64 && temp/maxW > 0.2) ) ) {
-				radius -= temp;
-			}
-			levels.forEach( function ( level, i ) {
-				textWidths.push( radius / ( levels.length ) - maxPointSize * 2 - 16 );
-				maxW = maxW = self._layout.qHyperCube.qDimensionInfo[i].qApprMaxGlyphCount * 12;
-				if ( i < levels.length - 1 && ( textWidths[i] < 12 || textWidths < 64 && textWidths[i]/maxW < 0.2) ) {
-					level.showLabels = false;
+				else if ( n.depth > 0 ) {
+					n.showLabel = true;
+					levels[n.depth - 1].hasVisibleLabels = true;
 				}
 			} );
-			textWidths[levels.length - 1] = temp;
-			levels[levels.length - 1].showLabels = levels[levels.length - 1].showLabels && temp >= 24;
-		}
 
-		var linearTree = d3.layout.tree().size( [self._width, treeWidth] ).separation( function ( a, b ) {
-			return self._sizing( a.size ) + self._sizing( b.size );
+			if ( !level.hasVisibleLabels ) {
+				level.showLabels = false;
+			}
+		} );
+	}
+	
+	function calculateLinear( data, layout, width, height ) {
+		var levels = data.levels,
+			adaptiveStrokeWidth = layout.adaptiveStrokeWidth;
+		
+		var maxCircleSize = Math.min( 80, 0.25 * width / (levels.length || 1) );
+		levels.forEach( function ( level ) {
+			maxCircleSize = Math.min( maxCircleSize, 0.5 * height / (level.nodes.length || 1) );
 		} );
 
-		var radialTree = d3.layout.tree().size( [arcSize, radius] )
-			.separation( function ( a, b ) {
-				return ( self._sizing( a.size ) + self._sizing( b.size ) ) * ( (a.parent === b.parent ? 1 : 2) / (a.depth || 1) );
-				//return (sizing(a.size) + sizing( b.size )) / a.depth;
-			} );
+		// point size in radius
+		var minPointSize = Math.max( 2, maxCircleSize * (layout.dataPoint && layout.dataPoint.size ? layout.dataPoint.size[0] : 1) );
+		var maxPointSize = Math.max( 2, maxCircleSize * (layout.dataPoint && layout.dataPoint.size ? layout.dataPoint.size[1] : 1) );
+
+		var sizing = d3.scale.linear().domain( [data.min, data.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
 
 		var sizeFn = function ( d ) {
-			d.nodeSize = d.target ? self._layout.adaptiveStrokeWidth ? self._sizing( d.target.size ) : 1 : // d.target exists for node links
-				self._sizing( d.size );
+			d.nodeSize = d.target ? adaptiveStrokeWidth ? sizing( d.target.size ) : 1 : // d.target exists for node links
+				sizing( d.size );
 			return d.nodeSize;
 		};
 
-		var radialTextTransformFn = function ( d ) {
-			return d.x < 180 ? "translate(" + (8 + self._pointSize.max) + ")" : "rotate(180) translate(-" + (8 + self._pointSize.max) + ")";
-		};
+		levels = levels.map( function ( level ) {
+			return {
+				showLabels: true,
+				nodes: level.nodes,
+				glyphCount: level.glyphCount,
+				glyphCountWeight: level.glyphCountWeight,
+				maxPointSize: sizing( level.max )
+			};
+		} );
 
-		var linearTextTransform = function ( d ) {
-			return "translate(" + (d.canExpand || d.children ? -1 : 1) * (8 + self._pointSize.max) + ")";
-		};
+		var tree = d3.layout.tree().size( [height - 2 * maxPointSize, width] ).separation( function ( a, b ) {
+			return sizing( a.size ) + sizing( b.size );
+		} );
 
-		var diagonal = isRadial ? radialDiagonal : linearDiagonal;
-		var transformFn = isRadial ? radialTransformFn : linearTransformFn;
-		var tree = isRadial ? radialTree : linearTree;
-		var textTransformFn = isRadial ? radialTextTransformFn : linearTextTransform;
-		var textAnchorFn = isRadial ? radialTextAnchorFn : linearTextAnchorFn;
-
-		var nodes = tree.nodes( self._data ).reverse();
-		var levelNodes = [];
-		nodes.forEach( function ( n ) {
-			if ( !levelNodes[n.depth] ) {
-				levelNodes[n.depth] = [];
-			}
-			levelNodes[n.depth].push( n );
+		var nodes = tree.nodes( data.root ).reverse();
+		nodes.pop();
+		
+		canLabelFitVertically( levels, height, maxPointSize );
+		
+		var labelWeight = 'labelWeight' in layout ? layout.labelWeight : 0.5;
+		
+		spaceOutLinear( levels, width, labelWeight );
+	
+		if ( levels.length > 1 ) {
+			canLabelFitHorizontally( levels[levels.length-1] );
+			canLabelFitHorizontally( levels[0] );
+			
+			spaceOutLinear( levels, width, labelWeight );
+		}
+		
+		if ( levels.length > 2 ) {
+			levels.slice(1, levels.length ).forEach( canLabelFitHorizontally );
+		}
+		
+		nodes.forEach( function ( d ) {
+			d.y = levels[( d.depth - 1)].offset;
 		} );
 		
-		this.levelNodes = levelNodes;
+		var linearTextTransform = function ( d ) {
+			return "translate(" + (d.depth < levels.length ? -1 : 1) * (PADDING+levels[d.depth-1].maxPointSize) + ")";
+		};
 
-		if ( tree === radialTree ) {
-			nodes.forEach( function ( d ) {
-				d.x = (((d.x + (arcSize === 360 ? self._rotation : 0) ) % 360) + 360 ) % 360;
-				//if ( arcSize <= 180 ) {
-				//	d.y = ( d.y - radius/levels.length ) / ( radius - radius/levels.length);
-				//	d.y *= radius;
-				//}
-			} );
+		var textAlignTransform = function ( d ) {
+			return d.depth < levels.length ? "end" : "start";
 		}
-		else {
-			levelNodes.filter( function ( level ) {
-				return !!level;
-			} ).forEach( function ( level ) {
-				level.forEach( function ( n, i, arr ) {
+		
+		return {
+			sizing: sizing,
+			levels: levels, 
+			tree: tree,
+			nodes: nodes,
+			sizeFn: sizeFn,
+			nameLabeling: {
+				position: linearTextTransform,
+				align: textAlignTransform
+			}
+		}
+	}
+	
+	
+	function getMaxCircleSize( levels, radius ) {
+		levels.forEach( function ( level, i ) {
+			maxCircleSize = Math.min( maxCircleSize, Math.PI * radiusSpacing * (i + 1) / (level.nodes.length || 1) );
+		} );
+	}
 
-					var dx = 0;
-					if ( i < arr.length - 1 ) {
-						dx = Math.abs( n.x - arr[i + 1].x );
-					}
-					else {
-						dx = n.x * 2.4;
-					}
+	function spaceOutRadial( levels, radius, labelWeight ) {
 
-					if ( i > 0 ) {
-						dx = Math.min( dx, Math.abs( n.x - arr[i - 1].x ) );
-					}
-					else {
-						dx = Math.min( dx, (self._width - n.x) * 2.4 );
-					}
+		var numLevelsThatNeedSpaceForLabel = levels.length + 1;
+		if ( !levels[levels.length - 1].showLabels ) {
+			numLevelsThatNeedSpaceForLabel--;
+		}
+		
+		levels.forEach( function( level ) {
+			level.minRadius = level.maxPointSize * level.nodes.length / Math.PI;
+		} );
 
-					if ( dx < 10 ) {
-						n.showLabel = false;
-					}
-					else if ( n.depth > 0 ) {
-						n.showLabel = true;
-						levels[n.depth - 1].hasVisibleLabels = true;
-					}
-				} );
+		var spacing = radius / (numLevelsThatNeedSpaceForLabel || 1);
+		var remainder = radius - 2 * levels.reduce( function( prev, level ){ return prev + level.maxPointSize; }, 0);
+		var distanceBetween = remainder / (numLevelsThatNeedSpaceForLabel || 1);
+		
+		var offset = 0;
+		
+		levels.slice().reverse().forEach( function ( level, i, arr ) {
+			var distanceToPrevious = spacing - level.maxPointSize - (i ? arr[i - 1].maxPointSize : 0);
+			var diff = (1 - labelWeight) * distanceBetween + labelWeight * remainder * level.glyphCountWeight - distanceToPrevious;
+			var foo = i === 0 && !level.showLabels ? level.maxPointSize : ( spacing + diff );
+			var textWidth = foo;
+			offset += foo;
+			//var offsetDiff = radius - offset - level.minRadius;
+			//if( offsetDiff < 0 ) {
+			//	textWidth += offsetDiff;
+			//}
+			
+			if( i > 0 ) {
+				textWidth -= arr[i-1].maxPointSize;
+			}
+			level.textWidth = textWidth - level.maxPointSize - 2 * PADDING;
+			level.offset = radius - offset;//Math.max( level.minRadius, radius - offset );
+		} );
+	}
+	
+	function calculateRadial( data, layout, width, height ) {
+		var levels = data.levels,
+			arcSize = 360,
+			adaptiveStrokeWidth = layout.adaptiveStrokeWidth,
+			labelWeight = 0;//'labelWeight' in layout ? layout.labelWeight : 0.5;
+
+		var radius = 0.5 * Math.min( width, height ),
+			radiusSpacing = radius / levels.length;
+		
+		var maxCircleSize = Math.min( 80, 0.5 * radius / (levels.length || 1) );
+
+		levels.forEach( function ( level, i ) {
+			maxCircleSize = Math.min( maxCircleSize, 0.5 * Math.PI * radiusSpacing * (i + 1) / (level.nodes.length || 1) );
+		} );
+		
+		// point size in radius
+		var minPointSize = Math.max(2, maxCircleSize * (layout.dataPoint && layout.dataPoint.size ? layout.dataPoint.size[0] : 1) );
+		var maxPointSize = Math.max(2, maxCircleSize * (layout.dataPoint && layout.dataPoint.size ? layout.dataPoint.size[1] : 1) );
+		var sizing = d3.scale.linear().domain( [data.min, data.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
+			
+		levels = levels.map( function ( level, i ) {
+			return {
+				showLabels: true,
+				nodes: level.nodes,
+				glyphCount: level.glyphCount,
+				glyphCountWeight: level.glyphCountWeight,
+				maxPointSize: sizing( level.max )
+			};
+		} );
+		
+		spaceOutRadial( levels, radius, labelWeight );
+
+		var tree = d3.layout.tree().size( [arcSize, radius] )
+			.separation( function ( a, b ) {
+				return ( (a.parent === b.parent ? 1 : 2) / (a.depth || 1) );
 			} );
-			levels.forEach( function( l, i ) {
-				if ( !l.hasVisibleLabels ) {
-					l.showLabels = false;
-					if ( l.spacingAdded ) {
-						treeWidth += l.spacingAdded;
-						if ( i === 0 ) {
-							self._padding.left -= l.spacingAdded;
-						}
-						else if( i === levels.length - 1) {
-							self._padding.right -= l.spacingAdded;
-						}
-					}
+
+		var nodes = tree.nodes( data.root ).reverse();
+		nodes.pop();
+
+
+		levels.forEach( function( level ) {
+			level.hasVisibleLabels = false;
+			level.nodes.forEach( function( node, i, arr ) {
+				node.showLabel = false;
+				var prev = arr[i ? i-1 : arr.length - 1].x;
+				var next = arr[i < arr.length - 1 ? i+1 : 0].x;
+				var dx = Math.min( Math.abs( arr[i].x - prev ), Math.abs( next - arr[i].x ) );
+				dx *= Math.PI * level.offset / 180;
+				if( arr.length < 2 || dx > 12 ) {
+					node.showLabel = true;
+					level.hasVisibleLabels = true;
 				}
 			} );
+			
+			if( !level.hasVisibleLabels ) {
+				level.showLabels = false;
+			}
+		} );
+		
+		levels.forEach( canLabelFitHorizontally );
+
+		spaceOutRadial( levels, radius, labelWeight );
+		
+		//sizing = d3.scale.linear().domain( [data.min, data.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
+
+		var sizeFn = function ( d ) {
+			d.nodeSize = d.target ? adaptiveStrokeWidth ? sizing( d.target.size ) : 1 : // d.target exists for node links
+				sizing( d.size );
+			return d.nodeSize;
+		};
+
+		
+		var tree = d3.layout.tree().size( [arcSize, radius] )
+			.separation( function ( a, b ) {
+				return ( (a.parent === b.parent ? 1 : 2) / (a.depth || 1) );
+				//return ( sizing( a.size ) + sizing( b.size ) ) * ( (a.parent === b.parent ? 1 : 2) / (a.depth || 1) );
+				//return (sizing(a.size) + sizing( b.size )) / a.depth;
+			} );
+
+
+
+		nodes.forEach( function ( d ) {
+			d.x = (((d.x - 90 + (arcSize === 360 ? 0 : 0) ) % 360) + 360 ) % 360;
+			
+			d.y = levels[d.depth-1].offset;
+			
+			if ( d.depth >= levels.length ) {
+				var px = 0.5 * width;
+				var py = 0.5 * height;
+				var vx = Math.cos( (d.x - 90) * Math.PI/180 );
+				var vy = Math.sin( (d.x - 90) * Math.PI/180 );
+
+				var tl = -px/vx;
+				var tr = 0.5 * width/vx;
+				var tb = 0.5 * height/vy;
+				var tt = -py/vy;
+
+				var t = Math.min.apply( null, [tl, tr, tb, tt].filter(function(v){return v >= 0;}) );
+				var x = px + t*vx;
+				var y = py + t*vy;
+
+				x -= px;
+				y -= py;
+
+				var c = Math.sqrt( x * x + y * y );
+				d.textWidth = c - levels[d.depth-1].offset - levels[d.depth-1].maxPointSize - PADDING;
+			}
+		} );
+		
+		
+
+		var textTransformFn = function ( d ) {
+			return d.x < 180 ? "translate(" + (PADDING + levels[d.depth-1].maxPointSize) + ")" : "rotate(180) translate(-" + (PADDING + (levels[d.depth-1].maxPointSize)) + ")";
+		};
+
+		var radialTextAnchorFn = function ( d ) {
+			return d.x < 180 ? "start" : "end";
+		};
+		
+		return {
+			levels: levels,
+			nodes: nodes,
+			sizeFn: sizeFn,
+			nameLabeling: {
+				position: textTransformFn,
+				align: radialTextAnchorFn
+			},
+			tree: tree
 		}
+	}
+	
+	function _update( source ) {
+		clearTimeout( this._rotationTimer );
+		var self = this,
+			width = self._w,
+			height = self._h,
+			isRadial = this._isRadial;
 		
+		var values = isRadial ? calculateRadial( this._data, this._layout, this._w, this._h ) :
+			calculateLinear( this._data, this._layout, this._w, this._h );
 		
+		var levels = values.levels;
+		var nodes = values.nodes;
+		var sizeFn = values.sizeFn;
+		var labelPosition = values.nameLabeling.position;
+		var labelAlignment = values.nameLabeling.align;
+		var tree = values.tree;
+
+
+
 		
+		var diagonal = isRadial ? radialDiagonal : linearDiagonal;
+		var transformFn = isRadial ? radialTransformFn : linearTransformFn;
+		//var textAnchorFn = isRadial ? radialTextAnchorFn : linearTextAnchorFn;
 
-		var spacing = 200;
-		if ( self._data.name === '_root' ) {
-			nodes.pop();
-
-			if ( tree === linearTree ) {
-				spacing = levels.length > 1 ? treeWidth / (levels.length - 1) : treeWidth / 2;
-				nodes.forEach( function ( d ) {
-					d.y = ( d.depth - 1) * spacing;
-				} );
-			}
-			else if ( tree === radialTree ) {
-				//spacing = (radius - self._pointSize.max * 2 - 16) / levels.length;
-				//levels.forEach( function ( level, i ) {
-				//	level.showLabels = level.showLabels && i < levels.length - 1 ? spacing > 40 : level.showLabels;
-				//} );
-			}
-		}
-
-		var rdx = this._w / 2 - radius;
-		var rdy = this._h / 2 - radius;
-
-		var wrap = function ( d ) {
-			var self = d3.select( this ),
-				dx, dy,
-				width = d.depth === levels.length ? 100 : spacing,
-				padding = 0,
-				approxFit,
-				textLength,
-				text;
-			dx = rdx * Math.cos( (d.x + 90) * Math.PI / 180 );
-			dy = rdy * Math.sin( (d.x + 90) * Math.PI / 180 );
-			width = isRadial && d.depth === levels.length ?
-			Math.sqrt( dx * dx + dy * dy ) - maxPointSize - 8 :
-				textWidths[d.depth - 1];
-			self.text( d.name );
-			textLength = self.node().getComputedTextLength();
-			text = self.text();
-			if ( textLength > width && text.length > 0 ) {
-				approxFit = Math.ceil( width / (textLength / text.length) );
-				text = text.slice( 0, approxFit );
-			}
-			while ( textLength > (width - 2 * padding) && text.length > 0 ) {
-				text = text.slice( 0, -1 );
-				self.text( text + '…' );
-				textLength = self.node().getComputedTextLength();
-			}
-		};
-
-		var checkTextNode = function ( d ) {
-			if ( d.showLabel === false || ( d.depth > 0 && levels[d.depth - 1].showLabels === false ) ) {
-				d3.select( this ).select( "text" ).remove();
-				return;
-			}
-
-			var t = this.querySelector( "text" );
-			if ( !t ) { // enter
-				d3.select( this ).append( "text" )
-					.text( d.name )
-					.attr( "dy", ".35em" )
-					.style( "fill-opacity", 1e-6 );
-			}
-
-			// update
-			d3.select( this ).select( "text" )
-				.text( d.name )
-				.each( wrap )
-				.attr( "text-anchor", textAnchorFn )
-				.attr( 'transform', textTransformFn )
-				.transition()
-				.duration( duration )
-				.style( "fill-opacity", 1 );
-		};
-
-		var checkEmoticonNode = function ( d ) {
-
-			if ( !d.emoticon || d.nodeSize < 8 ) {
-				d3.select( this ).select( "use" ).remove();
-				return;
-			}
-
-			var t = this.querySelector( "use" );
-			if ( !t ) { // enter
-				d3.select( this ).append( "use" )
-					.attr( "xlink:href", '#' + d.emoticon )
-					.attr( "transform", "scale(0.001, 0.001) translate(-370, -540)" );
-			}
-			else {
-				t.setAttribute( "href", '#' + d.emoticon );
-			}
-		};
 
 		var enteringTransform = isRadial ?
 		"rotate(" + (source._x - 90) + ") translate(" + source._y + ")" :
@@ -521,14 +525,13 @@ function(
 			.data( nodes, function ( d, i ) {
 				return d.id || (d.id = ++i);
 			} );
-		
+
 		// attach new nodes to parent's previous position (position to transition from) 
 		var nodeEnter = node.enter().append( "g" )
 			.attr( "class", function ( d ) {
 				return "node " + ((d.children || d._children) ? 'branch' : "leaf");
 			} )
 			.attr( "transform", enteringTransform )
-			//.on( 'click', onTap )
 			.on( "mouseenter", function ( d ) {
 				onNodeMouseOver( d, this, d3.event, isRadial );
 			} )
@@ -540,6 +543,10 @@ function(
 			.style( "fill", colorFn )
 			.style( "stroke", strokeColorFn )
 			.attr( "r", 1e-6 );
+
+		//nodeEnter.append( "rect" )
+		//	.attr( "y", -5 )
+		//	.attr( "height", 10 );
 
 		/*
 		nodeEnter.append("use")
@@ -560,9 +567,9 @@ function(
 		var nodeUpdate = node.transition()
 			.duration( duration )
 			.attr( "transform", transformFn );
-			//.style( 'stroke-width', function ( d ) {
-			//	return Math.sqrt( d.size ) / 150;
-			//} );
+		//.style( 'stroke-width', function ( d ) {
+		//	return Math.sqrt( d.size ) / 150;
+		//} );
 
 		nodeUpdate.attr( "class", function ( d ) {
 			var classes = ['node'],
@@ -607,6 +614,91 @@ function(
 			.attr( "class", function ( d ) {
 				return (d.children || d._children) ? 'branch' : "leaf";
 			} );
+		
+		/*
+		nodeUpdate.select( "rect" )
+			.attr( "x", function( d ) {
+				var offset = levels[d.depth-1].maxPointSize;
+				if ( d.depth < levels.length ) {
+					offset = -offset - levels[d.depth-1].textWidth;
+				}
+				return offset;
+			} )
+			.attr( "width", function( d ) {
+				if ( !d.showLabel ) {
+					return 0;
+				}
+				if ( 'textWidth' in d ) {
+					return d.textWidth;
+				}
+				return Math.max(0, levels[d.depth-1].textWidth );
+			} );
+*/
+		var wrap = function ( d ) {
+			var self = d3.select( this ),
+				dx, dy,
+				width = 'textWidth' in d ? d.textWidth : levels[d.depth-1].textWidth,
+				padding = 0,
+				approxFit,
+				textLength,
+				text;
+			
+			self.text( d.name );
+			textLength = self.node().getComputedTextLength();
+			text = self.text();
+			if ( textLength > width && text.length > 0 ) {
+				approxFit = Math.ceil( width / (textLength / text.length) );
+				text = text.slice( 0, approxFit );
+			}
+			while ( textLength > (width - 2 * padding) && text.length > 0 ) {
+				text = text.slice( 0, -1 );
+				self.text( text + '…' );
+				textLength = self.node().getComputedTextLength();
+			}
+		};
+
+		var checkTextNode = function ( d ) {
+			if ( d.showLabel === false || levels[d.depth-1].showLabels === false ) {
+				d3.select( this ).select( "text" ).remove();
+				return;
+			}
+
+			var t = this.querySelector( "text" );
+			if ( !t ) { // enter
+				d3.select( this ).append( "text" )
+					.text( d.name )
+					.attr( "dy", ".35em" )
+					.style( "fill-opacity", 1e-6 );
+			}
+
+			// update
+			d3.select( this ).select( "text" )
+				.text( d.name )
+				.each( wrap )
+				.attr( "text-anchor", labelAlignment )
+				.attr( 'transform', labelPosition )
+				.transition()
+				.duration( duration )
+				.style( "fill-opacity", 1 );
+		};
+
+		var checkEmoticonNode = function ( d ) {
+
+			if ( !d.emoticon || d.nodeSize < 8 ) {
+				d3.select( this ).select( "use" ).remove();
+				return;
+			}
+
+			var t = this.querySelector( "use" );
+			if ( !t ) { // enter
+				d3.select( this ).append( "use" )
+					.attr( "xlink:href", '#' + d.emoticon )
+					.attr( "transform", "scale(0.001, 0.001) translate(-370, -540)" );
+			}
+			else {
+				t.setAttribute( "href", '#' + d.emoticon );
+			}
+		};
 
 		nodeUpdate.each( checkTextNode );
 		nodeUpdate.each( checkEmoticonNode );
@@ -655,7 +747,7 @@ function(
 			.duration( duration )
 			.style( 'stroke-width', sizeFn )
 			.attr( "d", diagonal );
-		
+
 		linkUpdate.attr( "class", function( d ) {
 			var s = "link",
 				cellId = d.target.col + ";" + d.target.row;
@@ -664,7 +756,7 @@ function(
 			}
 			return s;
 		} );
-		
+
 		// Transition exiting nodes to the parent's new position.
 		link.exit().transition()
 			.duration( duration )
@@ -686,47 +778,26 @@ function(
 
 		this._w = w;
 		this._h = h;
-		this._width = h; // width to height due to projection
-		this._height = w;
 
 		this._radius = Math.min( w, h ) / 2;
 
 		var minPointSize = Math.max( 1, this._radius / 100 );
 		var maxPointSize = Math.min( 40, Math.max( this._radius / 20, 2 ) );
 
-		this._pointSize = {min: minPointSize, max: maxPointSize};
-		this._sizing = d3.scale.linear().domain( [this._minMax.min, this._minMax.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
+		//this._pointSize = {min: minPointSize, max: maxPointSize};
+		//this._sizing = d3.scale.linear().domain( [this._minMax.min, this._minMax.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
 
 		this._padding = {
-			left: 0,//maxPointSize,//Math.min( w * 0.2, this._layout.qHyperCube.qDimensionInfo[0].qApprMaxGlyphCount * 12 ),
-			right: 0//maxPointSize//Math.min( w * 0.2, this._layout.qHyperCube.qDimensionInfo.slice( -1 )[0].qApprMaxGlyphCount * 12 )
+			left: 0,
+			right: 0
 		};
-
-		//var levelSpacing = layout.radial ? this._radius / maxLevel : this._height / maxLevel;
 	}
-
-	/*
-	var DendrogramController = Controller.extend( "DendogramController", {
-		init: function( scope, element, timeout, selectionService ) {
-			this.$scope = scope;
-			this.$element = element;
-			this.$timeout = timeout;
-
-			this._super.apply( this, arguments );
-		}
-		//onPaint: function() {
-		//	this.paint( this.$element, this.$scope.layout );
-		//},
-		//onResize: function() {
-		//	this.resize();
-		//},
-		
-	});
-	*/
 
 	var DendrogramView = DefaultView.extend( {
 		init: function () {
 			this._super.apply( this, arguments );
+			
+			$("<div class='marker p-50-50'></div><div class='marker p-25'></div><div class='marker p-33'></div><div class='marker p-50'></div><div class='marker p-66'></div><div class='marker p-75'></div>" ).appendTo( this.$element );
 
 			this.$element.addClass( "mek-dendrogram" );
 			d3.select( this.$element[0] ).append( "svg" )
@@ -734,6 +805,7 @@ function(
 					xmlns: "http://www.w3.org/2000/svg",
 					xlink: "http://www.w3.org/1999/xlink"
 				} ).style( 'display', 'none' );
+			
 			
 			
 			var svg = d3.select( this.$element[0] ).append( "svg" )
@@ -763,7 +835,7 @@ function(
 
 			var svg = this._svg;
 
-			_update.call( this, this._data );
+			_update.call( this, this._data.root );
 
 			var rootTransform = this._isRadial ? "translate(" + w / 2 + "," + h / 2 + ")" :
 			"translate(" + this._padding.left + ", 0)";
@@ -785,7 +857,7 @@ function(
 				this._rotation += 10 * direction;
 				clearTimeout( this._rotationTimer );
 				this._rotationTimer = setTimeout( function () {
-					_update.call( this, this._data );
+					_update.call( this, this._data.root );
 				}.bind( this ), 30 )
 
 			}.bind( this ) );
@@ -891,27 +963,27 @@ function(
 			var data = dataProcessor.process( layout ),
 				w, h;
 
-			this._levels = data.levels;
-			this._maxLevelNodes = Math.max.apply( null, this._levels );
-			this._isRadial = this._maxLevelNodes < 10 ? false : layout.radial;
-			data = data.data;
+			//this._levels = data.levels;
+			//this._maxLevelNodes = Math.max.apply( null, this._levels );
+			this._isRadial = layout.radial;//false;//this._maxLevelNodes < 10 ? false : layout.radial;
+			//data = data.root;
 			this._data = data;
 			this._layout = layout;
-			this._minMax = getMinMax( data, 'size' );
+			//this._minMax = getMinMax( data.root, 'size' );
 
 			_updateSize.call( this );
 
 			w = this._w;
 			h = this._h;
 
-			data._x = h / 2;
-			data._y = 0;
+			data.root._x = h / 2;
+			data.root._y = 0;
 
 			var root = this._root;
 			root.attr( "class", 'root' );
 			
 			
-			_update.call( this, this._toggledNode || this._data );
+			_update.call( this, this._toggledNode || this._data.root );
 			this._toggledNode = null;
 
 			var rootTransform = this._isRadial ? "translate(" + w / 2 + "," + h / 2 + ")" :
@@ -931,7 +1003,7 @@ function(
 				selections.switchSelectionModel.call( this, this._isPathSelectActive );
 				//selections.select.call( this );
 			}
-			_update.call( this, this._data );
+			_update.call( this, this._data.root );
 		},
 		isPathSelectionActive: function() {
 			return this._isPathSelectActive;
@@ -945,7 +1017,7 @@ function(
 				  name: "",
 				  isIcon: true,
 				  buttonClass: "sel-toolbar-icon-toggle",
-				  iconClass: "icon-toolbar-follow",
+				  iconClass: "icon-link",
 				  action: function () {
 					  view.togglePathSelect();
 				  },
@@ -963,50 +1035,7 @@ function(
 				}], [] );
 		},
 		selectValues: function ( cells, clearOld ) {
-			
 			selections.selectValues( this, cells, clearOld );
-			/*
-			if ( !this.selectionsEnabled ) {
-				return;
-			}
-			if ( !this.backendApi.inSelections() ) {
-				var $scope = this.$scope, self = this;
-				//map functions for toolbar
-				$scope.selectionsApi.confirm = function () {
-					clearSelections.call( self, true );
-					$scope.backendApi.endSelections( true ).then( function () {
-						$scope.selectionsApi.deactivated();
-					} );
-				};
-				$scope.selectionsApi.cancel = function () {
-					clearSelections.call( self, false );
-					$scope.backendApi.endSelections( false );
-					$scope.selectionsApi.deactivated();
-				};
-				$scope.selectionsApi.deactivate = function () {
-					clearSelections.call( self, true );
-					this.deactivated();
-				};
-				$scope.selectionsApi.clear = function () {
-					clearSelections.call( self, false );
-					$scope.backendApi.clearSelections();
-					$scope.selectionsApi.selectionsMade = false;
-					self.resize();
-				};
-
-				//start selection mode
-				this.backendApi.beginSelections();
-				$scope.selectionsApi.activated();
-				$scope.selectionsApi.selectionsMade = true;
-			}
-
-			if ( !qValues.length ) {
-				this.backendApi.clearSelections();
-			}
-			else {
-				this.backendApi.select( qValues, [qDimNo], 'L' );
-			}
-			*/
 		}
 	} );
 	

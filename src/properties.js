@@ -75,7 +75,18 @@ define( [], function () {
 								ref: "radial",
 								defaultValue: false,
 								translation: "mek.radial"
-							}
+							},
+							spacing: {
+								show: false,
+								type: "number",
+								component: "slider",
+								ref: "labelWeight",
+								translation: "mek.labelWeight",
+								min: 0,
+								max: 1,
+								step: 0.05,
+								defaultValue: 0.5
+							},
 						}
 					}
 				}
