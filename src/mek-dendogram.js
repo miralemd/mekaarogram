@@ -197,11 +197,78 @@ function(
 	function canLabelFitVertically( levels, height, maxPointSize ) {
 		// set label visibility based on vertical spacing between nodes
 		levels.forEach( function ( level ) {
-			var nodes = level.nodes.slice().reverse();
+			level.showLabels = true;
+			level.numVisibleLabels = 0;
+			level.minLabelDistance = height;
+			var nodes = level.nodes.slice();
+			var original = level.nodes;
+			
+			nodes.forEach( function( node, i ) {
+				node._handledLabel = false;
+				node.levelIndex = i;
+				node.showLabel = false;
+				//node.x += maxPointSize;
+			} );
+			nodes.sort( function( a, b ) {
+				return b.nodeSize - a.nodeSize;
+			} );
+			
 			nodes.forEach( function ( n, i, arr ) {
-				n.x += maxPointSize;
+
+				if( n._handledLabel ) {
+					return;
+				}
 				//n.y = i * height/arr.length;
 				var dx = 0;
+				var idx = n.levelIndex;
+				var prevX = 0;
+				var nextX = 0;
+				
+				var space = 10;
+				
+				var touchesNeighbour = false;
+				if ( idx === 0 ) {
+					prevX = 2 * n.x;
+				}
+				else {
+					touchesNeighbour = n.x - n.nodeSize < original[idx-1].x + original[idx-1].nodeSize;
+					do {
+						prevX = n.x - original[--idx].x;
+					} while( prevX < space && idx > 0 && !original[idx].showLabel )
+				}
+
+				idx = n.levelIndex;
+				if ( idx === arr.length - 1 ) {
+					nextX = 2 * (height - n.x);
+				}
+				else {
+					touchesNeighbour = touchesNeighbour || (n.x + n.nodeSize > original[idx+1].x - original[idx+1].nodeSize);
+					do {
+						nextX = original[++idx].x - n.x;
+					} while( nextX < space && idx < arr.length - 1 && !original[idx].showLabel )
+				}
+				
+				n.showLabel = !touchesNeighbour && prevX >= space && nextX >= space;
+
+				if ( n.showLabel ) {
+					level.numVisibleLabels++;
+					level.minLabelDistance = Math.min( level.minLabelDistance, prevX, nextX );
+				}
+				
+				/*
+				idx = n.levelIndex;
+				nextX = 0;
+				while( nextX < 10 && idx < arr.length - 1 ) {
+					if ( idx !== n.levelIndex ) {
+						original[idx]._handledLabel = true;
+						original[idx].showLabel = false;
+					}
+
+					nextX = n.x - original[idx++].x;
+				}
+				*/
+				
+				/*
 				if ( i < arr.length - 1 ) {
 					dx = Math.abs( n.x - arr[i + 1].x );
 				}
@@ -223,9 +290,10 @@ function(
 					n.showLabel = true;
 					levels[n.depth - 1].hasVisibleLabels = true;
 				}
+				*/
 			} );
 
-			if ( !level.hasVisibleLabels ) {
+			if ( !level.numVisibleLabels ) {
 				level.showLabels = false;
 			}
 		} );
@@ -238,6 +306,11 @@ function(
 		var maxCircleSize = Math.min( 80, 0.25 * width / (levels.length || 1) );
 		levels.forEach( function ( level ) {
 			maxCircleSize = Math.min( maxCircleSize, 0.5 * height / (level.nodes.length || 1) );
+		} );
+
+		var prevMax = maxCircleSize;
+		levels.forEach( function ( level ) {
+			maxCircleSize = Math.min( maxCircleSize, 0.5 * (height-maxCircleSize) / (level.nodes.length || 1) );
 		} );
 
 		// point size in radius
@@ -262,12 +335,16 @@ function(
 			};
 		} );
 
-		var tree = d3.layout.tree().size( [height - 2 * maxPointSize, width] ).separation( function ( a, b ) {
+		var tree = d3.layout.tree().size( [height, width] ).separation( function ( a, b ) {
 			return sizing( a.size ) + sizing( b.size );
 		} );
 
 		var nodes = tree.nodes( data.root ).reverse();
 		nodes.pop();
+		
+		nodes.forEach( function( node ) {
+			node.nodeSize = sizing( node.size );
+		} );
 		
 		canLabelFitVertically( levels, height, maxPointSize );
 		
@@ -502,8 +579,17 @@ function(
 		var labelPosition = values.nameLabeling.position;
 		var labelAlignment = values.nameLabeling.align;
 		var tree = values.tree;
-
-
+		
+		
+		var minLabelSpace = Math.min.apply( null, levels.map( function( level ) {
+			return level.minLabelDistance;
+		} ) );
+		
+		this.$element.removeClass("f-size-m f-size-s f-size-xs");
+		if( minLabelSpace !== null && !isNaN(minLabelSpace) && minLabelSpace < 13 ) {
+			this.$element.addClass( minLabelSpace < 11 ? 'f-size-xs':
+				minLabelSpace < 12 ? 'f-size-s' : 'f-size-m');
+		}
 
 		
 		var diagonal = isRadial ? radialDiagonal : linearDiagonal;
@@ -837,7 +923,7 @@ function(
 		init: function () {
 			this._super.apply( this, arguments );
 			
-			$("<div class='marker p-50-50'></div><div class='marker p-25'></div><div class='marker p-33'></div><div class='marker p-50'></div><div class='marker p-66'></div><div class='marker p-75'></div>" ).appendTo( this.$element );
+			//$("<div class='marker p-50-50'></div><div class='marker p-25'></div><div class='marker p-33'></div><div class='marker p-50'></div><div class='marker p-66'></div><div class='marker p-75'></div>" ).appendTo( this.$element );
 
 			this.$element.addClass( "mek-dendrogram" );
 			d3.select( this.$element[0] ).append( "svg" )

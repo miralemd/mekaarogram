@@ -16,6 +16,19 @@
 	text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
 }
 
+
+.mek-dendrogram.f-size-m .label {
+	font-size: 12px;
+}
+
+.mek-dendrogram.f-size-s .label {
+	font-size: 11px;
+}
+
+.mek-dendrogram.f-size-xs .label {
+	font-size: 10px;
+}
+
 .mek-dendrogram .symbol-text {
 	font-family: "QlikView Sans", sans-serif;
 	alignment-baseline: central;
