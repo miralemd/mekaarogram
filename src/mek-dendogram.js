@@ -1101,6 +1101,9 @@ function(
 				}]
 			}
 		},
+		snapshot: {
+			canTakeSnapshot: true
+		},
 		data: {
 			dimensions: {
 				min: 1,
