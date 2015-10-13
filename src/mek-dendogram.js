@@ -779,10 +779,11 @@ function(
 			}
 			
 			var t;
+			d._isSvgSymbol = false;
 			
 			if ( /^#/.exec( d.symbol ) ) {// svg link
 				d3.select( this ).select( ".symbol-text" ).remove(); // remove other types of symbols
-				
+				d._isSvgSymbol = true;
 				t = this.querySelector( ".symbol-svg" );
 				if ( !t ) { // enter
 					d3.select( this ).append( "use" )
@@ -829,11 +830,12 @@ function(
 		nodeUpdate.each( checkLabelNode );
 		nodeUpdate.each( checkSymbolNode );
 
-		nodeUpdate.select( "use" )
+		nodeUpdate.select( ".symbol" )
 			.attr( "transform", function ( d ) {
 				var size = sizeFn( d );
 				var scale = size / 20;
-				return "scale(" + scale + "," + scale + ")" + (isRadial ? "rotate(" + (-d.x + 90) + ")" : "");
+				
+				return (d._isSvgSymbol ? "scale(" + scale + "," + scale + ")" : "") + (isRadial ? "rotate(" + (-d.x + 90) + ")" : "");
 			} );
 
 		var nodeExit = node.exit().transition()
