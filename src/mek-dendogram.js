@@ -193,6 +193,47 @@ function(
 			level.showLabels = false;
 		}
 	}
+
+	function expandLabelWidthWherePossible( levels ) {
+		
+		levels.forEach( function( level, i ) {
+			var glyphCount = level.glyphCount;
+			var spaceForLabels = level.textWidth;
+			
+			if( levels.length > 2 && i > 0 && i < levels.length - 1 ) {
+				level.nodes.forEach( function( n ) {
+					n.textWidth = spaceForLabels;
+
+					var canFit = true;
+					levels.slice( 0, i ).reverse().forEach( function( level ) {
+						if( !canFit ) { // if it couln't fit through a corridor on last level, don't bother trying on next
+							return;
+						}
+						var start = n.x - 6;
+						var end = n.x + 6;
+
+						var c, s, e, corr = level.corridor, len = corr.length;
+						var isExtended = false;
+						for ( c = 0; c < len; c++ ) {
+							s = corr[c].start;
+							e = corr[c].end;
+							if( start >= s && end <= e ) {
+								isExtended = true;
+								n.textWidth += PADDING * 2 + level.textWidth + 2 * level.maxPointSize;
+								break;
+							}
+						}
+						
+						canFit = isExtended;
+					} );
+				} );
+			}
+
+			if ( !(spaceForLabels > 18 || spaceForLabels / (12 * glyphCount) > 1 ) ) {
+				level.showLabels = false;
+			}
+		} );
+	}
 	
 	function canLabelFitVertically( levels, height, maxPointSize ) {
 		// set label visibility based on vertical spacing between nodes
@@ -231,7 +272,7 @@ function(
 					prevX = 2 * n.x;
 				}
 				else {
-					touchesNeighbour = n.x - n.nodeSize < original[idx-1].x + original[idx-1].nodeSize;
+					touchesNeighbour = n.x - n.nodeSize < original[idx-1].x;// + original[idx-1].nodeSize;
 					do {
 						prevX = n.x - original[--idx].x;
 					} while( prevX < space && idx > 0 && !original[idx].showLabel )
@@ -245,7 +286,7 @@ function(
 					nextX = 2 * (height - n.x);
 				}
 				else {
-					touchesNeighbour = touchesNeighbour || (n.x + n.nodeSize > original[idx+1].x - original[idx+1].nodeSize);
+					touchesNeighbour = touchesNeighbour || (n.x + n.nodeSize > original[idx+1].x);// - original[idx+1].nodeSize);
 					do {
 						nextX = original[++idx].x - n.x;
 					} while( nextX < space && idx < arr.length - 1 && !original[idx].showLabel )
@@ -337,7 +378,8 @@ function(
 				nodes: level.nodes,
 				glyphCount: level.glyphCount,
 				glyphCountWeight: level.glyphCountWeight,
-				maxPointSize: sizing( level.max )
+				maxPointSize: sizing( level.max ),
+				corridor: []
 			};
 		} );
 
@@ -347,12 +389,40 @@ function(
 
 		var nodes = tree.nodes( data.root ).reverse();
 		nodes.pop();
-		
+
 		nodes.forEach( function( node ) {
 			node.nodeSize = sizing( node.size );
 		} );
 		
 		canLabelFitVertically( levels, height, maxPointSize );
+		
+		nodes.forEach( function( node ) {
+			levels[node.depth-1].corridor[Math.round(node.x)] = Math.max(levels[node.depth-1].corridor[Math.round(node.x)] || 0, Math.max( 2 * node.nodeSize, node.showLabel ? 12 : 0));
+		} );
+
+		levels.forEach( function( level ) {
+			var corridor = level.corridor.slice();
+			var out = [];
+			var start = 0;
+			var end = 0;
+			corridor.forEach( function(c, i) {
+				end = i - corridor[i] / 2;
+
+				if( end - start > 12 ) {
+					out.push({start: start, end:end});
+				}
+				start = i + corridor[i] / 2;
+			});
+			end = height;
+
+			if( end - start > 12 ) {
+				out.push({start: start, end:end});
+			}
+
+			level.corridor = out;
+		} );
+		
+		
 		
 		var labelWeight = 'labelWeight' in layout ? layout.labelWeight : 0.5;
 		
@@ -366,6 +436,7 @@ function(
 		}
 		
 		if ( levels.length > 2 ) {
+			expandLabelWidthWherePossible( levels );
 			levels.slice(1, levels.length ).forEach( canLabelFitHorizontally );
 		}
 		
