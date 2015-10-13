@@ -224,7 +224,7 @@ function(
 				var prevX = 0;
 				var nextX = 0;
 				
-				var space = 10;
+				var space = 8;
 				
 				var touchesNeighbour = false;
 				if ( idx === 0 ) {
@@ -235,6 +235,9 @@ function(
 					do {
 						prevX = n.x - original[--idx].x;
 					} while( prevX < space && idx > 0 && !original[idx].showLabel )
+					if( idx === 0 && !original[idx].showLabel ) { // add additional space available above the first node
+						prevX += 2*original[idx].x;
+					}
 				}
 
 				idx = n.levelIndex;
@@ -246,6 +249,9 @@ function(
 					do {
 						nextX = original[++idx].x - n.x;
 					} while( nextX < space && idx < arr.length - 1 && !original[idx].showLabel )
+					if( idx === arr.length-1 && !original[idx].showLabel ) { // add additional space available after the last node
+						nextX += 2*(height-original[idx].x);
+					}
 				}
 				
 				n.showLabel = !touchesNeighbour && prevX >= space && nextX >= space;
@@ -431,6 +437,113 @@ function(
 		} );
 	}
 	
+	function _canLabelFitRadially( levels, radius, maxPointSize ) {
+		levels.forEach( function( level ) {
+			level.hasVisibleLabels = false;
+			level.nodes.forEach( function( node, i, arr ) {
+				node.showLabel = false;
+				var prev = arr[i ? i-1 : arr.length - 1].x;
+				var next = arr[i < arr.length - 1 ? i+1 : 0].x;
+				var dx = Math.min( Math.abs( arr[i].x - prev ), Math.abs( next - arr[i].x ) );
+				dx *= Math.PI * level.offset / 180;
+				if( arr.length < 2 || dx > 62 ) {
+					node.showLabel = true;
+					level.hasVisibleLabels = true;
+				}
+			} );
+
+			if( !level.hasVisibleLabels ) {
+				level.showLabels = false;
+			}
+		} );
+	}
+
+	function canLabelFitRadially( levels, radius, maxPointSize ) {
+		levels.forEach( function( level ) {
+			level.showLabels = true;
+			level.numVisibleLabels = 0;
+			level.minLabelDistance = 180 * Math.PI * level.offset;
+
+			var nodes = level.nodes.slice();
+			var original = level.nodes;
+
+			nodes.forEach( function( node, i ) {
+				node.levelIndex = i;
+				node.showLabel = false;
+			} );
+			nodes.sort( function( a, b ) {
+				return b.size - a.size;
+			} );
+
+
+			nodes.forEach( function( n, i, arr ) {
+				
+				var idx = n.levelIndex;
+				var prevX = 0;
+				var nextX = 0;
+				var space = 10;
+				var looped = false;
+				
+				do {
+					--idx;
+					if ( idx === -1 && !looped ) {
+						looped = true;
+						idx = arr.length-1;
+					}
+					else if( looped ) {
+						break;
+					}
+					
+					prevX = n.x - original[idx].x;
+					if( prevX < 0 ) {
+						prevX = n.x - original[idx].x + 360;
+					}
+					prevX *= Math.PI * level.offset / 180;
+					
+				} while( prevX < space && !original[idx].showLabel )
+				
+				idx = n.levelIndex;
+				looped = false;
+				do {
+					++idx;
+					if( idx >= arr.length && !looped ) {
+						looped = true;
+						idx = 0;
+					}
+					else if( looped ) {
+						break;
+					}
+					
+					nextX = original[idx].x - n.x;
+					if ( nextX < 0 ) {
+						nextX += 360;
+					}
+					nextX *= Math.PI * level.offset / 180;
+				} while( nextX < space && !original[idx].showLabel )
+				
+				n.showLabel = prevX >= space && nextX >= space;
+				
+				if( n.showLabel ) {
+					level.numVisibleLabels++;
+					level.minLabelDistance = Math.min( level.minLabelDistance, prevX, nextX );
+				}
+				
+				//var prev = arr[i ? i-1 : arr.length - 1].x;
+				//var next = arr[i < arr.length - 1 ? i+1 : 0].x;
+				//var dx = Math.min( Math.abs( arr[i].x - prev ), Math.abs( next - arr[i].x ) );
+				//dx *= Math.PI * level.offset / 180;
+				//if( arr.length < 2 || dx > 62 ) {
+				//	n.showLabel = true;
+				//	level.hasVisibleLabels = true;
+				//}
+			} );
+
+			if ( !level.numVisibleLabels ) {
+				level.showLabels = false;
+			}
+		} );
+	}
+	
 	function calculateRadial( data, layout, width, height ) {
 		var levels = data.levels,
 			arcSize = 360,
@@ -471,25 +584,7 @@ function(
 		var nodes = tree.nodes( data.root ).reverse();
 		nodes.pop();
 
-
-		levels.forEach( function( level ) {
-			level.hasVisibleLabels = false;
-			level.nodes.forEach( function( node, i, arr ) {
-				node.showLabel = false;
-				var prev = arr[i ? i-1 : arr.length - 1].x;
-				var next = arr[i < arr.length - 1 ? i+1 : 0].x;
-				var dx = Math.min( Math.abs( arr[i].x - prev ), Math.abs( next - arr[i].x ) );
-				dx *= Math.PI * level.offset / 180;
-				if( arr.length < 2 || dx > 12 ) {
-					node.showLabel = true;
-					level.hasVisibleLabels = true;
-				}
-			} );
-			
-			if( !level.hasVisibleLabels ) {
-				level.showLabels = false;
-			}
-		} );
+		canLabelFitRadially( levels, radius, maxPointSize);
 		
 		levels.forEach( canLabelFitHorizontally );
 
@@ -514,7 +609,7 @@ function(
 
 
 		nodes.forEach( function ( d ) {
-			d.x = (((d.x - 90 + (arcSize === 360 ? 0 : 0) ) % 360) + 360 ) % 360;
+			d.x = (((d.x + 90 + (arcSize === 360 ? 0 : 0) ) % 360) + 360 ) % 360;
 			
 			d.y = levels[d.depth-1].offset;
 			
