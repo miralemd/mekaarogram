@@ -422,8 +422,6 @@ function(
 			level.corridor = out;
 		} );
 		
-		
-		
 		var labelWeight = 'labelWeight' in layout ? layout.labelWeight : 0.5;
 		
 		spaceOutLinear( levels, width, labelWeight );
@@ -615,6 +613,49 @@ function(
 		} );
 	}
 	
+	function expandRadialLabels( levels ) {
+		levels.forEach( function( level, i ) {
+			//var glyphCount = level.glyphCount;
+			var spaceForLabels = level.textWidth;
+
+			if( levels.length > 1 && i < levels.length - 1 ) {
+				level.nodes.forEach( function( n ) {
+					n.textWidth = spaceForLabels;
+					n._extendToEdge = false;
+
+					var canFit = true;
+					levels.slice( i + 1 ).forEach( function( level ) {
+						if( !canFit ) { // if it couln't fit through a corridor on last level, don't bother trying on next
+							return;
+						}
+						var start = Math.PI * n.x * level.offset / 180 - 6;
+						var end = start + 12;
+
+						var c, s, e, corr = level.corridor, len = corr.length;
+						var isExtended = false;
+						for ( c = 0; c < len; c++ ) {
+							s = corr[c].start;
+							e = corr[c].end;
+							if( start >= s && end <= e ) {
+								isExtended = true;
+								n.textWidth += PADDING * 2 + level.textWidth + 2 * level.maxPointSize;
+								break;
+							}
+						}
+						if ( isExtended && level === levels[levels.length-1] ) {
+							n._extendToEdge = true;
+						}
+						canFit = isExtended;
+					} );
+				} );
+			}
+
+			//if ( !(spaceForLabels > 18 || spaceForLabels / (12 * glyphCount) > 1 ) ) {
+			//	level.showLabels = false;
+			//}
+		} );
+	}
+	
 	function calculateRadial( data, layout, width, height ) {
 		var levels = data.levels,
 			arcSize = 360,
@@ -641,7 +682,8 @@ function(
 				nodes: level.nodes,
 				glyphCount: level.glyphCount,
 				glyphCountWeight: level.glyphCountWeight,
-				maxPointSize: sizing( level.max )
+				maxPointSize: sizing( level.max ),
+				corridor: []
 			};
 		} );
 		
@@ -657,11 +699,11 @@ function(
 
 		canLabelFitRadially( levels, radius, maxPointSize);
 		
+		
 		levels.forEach( canLabelFitHorizontally );
 
 		spaceOutRadial( levels, radius, labelWeight );
 		
-		//sizing = d3.scale.linear().domain( [data.min, data.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
 
 		var sizeFn = function ( d ) {
 			d.nodeSize = d.target ? adaptiveStrokeWidth ? sizing( d.target.size ) : 1 : // d.target exists for node links
@@ -678,13 +720,53 @@ function(
 			} );
 
 
+		nodes.forEach( function( node ) {
+			delete node.textWidth;
+			node.nodeSize = sizing( node.size );
+			var l = levels[node.depth - 1];
+			var arcPos = Math.round( node.x * Math.PI * l.offset / 180 );
+			l.corridor[arcPos] = Math.max( l.corridor[arcPos] || 0, Math.max( 2 * node.nodeSize, node.showLabel ? 12 : 0 ) );
+		} );
+
+		levels.forEach( function( level ) {
+			var corridor = level.corridor.slice();
+			var out = [];
+			var start = (corridor.length-1) - corridor[corridor.length-1] / 2;
+			var end = 0;
+			var firstIndex;
+			var half = Math.PI * level.offset;
+			corridor.forEach( function( c, i ) {
+				if( typeof firstIndex === 'undefined' ) {
+					firstIndex = i;
+				}
+				end = i - corridor[i] / 2;
+
+				if( end - start > 12 ) {
+					out.push({start: start, end:end});
+				}
+				else if( start - end > 12 ) {
+					out.push({start: start, end: end + half * 2});
+					out.push({start: start - half * 2, end: end});
+				}
+				start = i + corridor[i] / 2;
+			});
+			end = firstIndex;
+
+			if( end - start > 12 ) {
+				out.push({start: start, end:end});
+			}
+
+			level.corridor = out;
+		} );
+
+		expandRadialLabels( levels );
 
 		nodes.forEach( function ( d ) {
 			d.x = (((d.x + 90 + (arcSize === 360 ? 0 : 0) ) % 360) + 360 ) % 360;
 			
 			d.y = levels[d.depth-1].offset;
 			
-			if ( d.depth >= levels.length ) {
+			if ( d.depth >= levels.length || d._extendToEdge ) {
 				var px = 0.5 * width;
 				var py = 0.5 * height;
 				var vx = Math.cos( (d.x - 90) * Math.PI/180 );
