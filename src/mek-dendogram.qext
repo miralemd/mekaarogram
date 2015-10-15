@@ -3,5 +3,7 @@
 	"description" : "v0.1.1",
 	"type" : "visualization",
 	"version": "0.1.1",
-	"author": "Miralem Drek"
+	"author": "Miralem Drek",
+	"preview": "clapping.gif",
+	"icon": "mek-dendrogram"
 }

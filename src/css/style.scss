@@ -1,0 +1,127 @@
+.mek-dendrogram {
+
+  .link {
+    fill: none;
+    stroke: #aaa;
+    stroke-linecap: round;
+    stroke-width: 1px;
+    opacity: 0.4;
+  }
+
+  .label {
+    fill: #666;
+    font-weight: normal;
+    font-family: "QlikView Sans", sans-serif;
+    font-size: 13px;
+    opacity: 1.0;
+
+    text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
+  }
+
+
+  &.f-size-m .label {
+    font-size: 12px;
+  }
+
+  &.f-size-s .label {
+    font-size: 11px;
+  }
+
+  &.f-size-xs .label {
+    font-size: 10px;
+  }
+
+  .symbol-text {
+    font-family: "QlikView Sans", sans-serif;
+    alignment-baseline: central;
+  }
+
+  .symbol-icon {
+    font-family: "QlikView Icons";
+    alignment-baseline: middle;
+  }
+
+  .node.node-expandable {
+    font-weight: bold;
+  }
+
+  .node circle {
+    fill: #CDECD8;
+    stroke: transparent;
+    stroke-width: 0;
+    opacity: 1.0;
+  }
+
+  .node.node-selectable {
+    cursor: pointer;
+  }
+
+  .inSelections .link {
+    opacity: 0.0;
+  }
+
+  .inSelections .link.semi-selected {
+    opacity: 0.2;
+  }
+
+  .inSelections .node:not(.node-selected) {
+    opacity: 0.5;
+  }
+
+  .inSelections .node-semi-selected {
+    opacity: 0.8 !important;
+  }
+
+  .inSelections .node.unselectable {
+    opacity: 0.15;
+    cursor: default;
+  }
+/*
+  rect {
+    fill: rgba(100, 255, 100, 0.5);
+    opacity:0;
+  }
+*/
+}
+
+
+
+
+.marker {
+  width: 1px;
+  background-color: cyan;
+  display: block;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.marker.p-25 {
+  left: 25%;
+  opacity: 0;
+}
+
+.marker.p-33 {
+  left: 33%;
+}
+
+.marker.p-50 {
+  left: 50%;
+}
+.marker.p-66 {
+  left: 66%;
+}
+.marker.p-75 {
+  left: 75%;
+  opacity: 0;
+}
+
+.marker.p-50-50 {
+  left: 50%;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  margin-top: -2px;
+  margin-left: -2px;
+  border-radius: 2px;
+}

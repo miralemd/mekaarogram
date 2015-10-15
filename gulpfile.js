@@ -1,5 +1,6 @@
 var gulp = require( 'gulp' );
 var eslint = require( 'gulp-eslint' );
+var sass = require( 'gulp-sass' );
 var changed = require( 'gulp-changed' );
 
 var qdir = (process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] ) + "\\Documents\\Qlik\\Sense\\Extensions\\dendrogram";
@@ -9,18 +10,25 @@ gulp.task( 'default', function () {
 } );
 
 gulp.task( 'lint', function () {
-	return gulp.src( ['./src/*.js', '!./src/d3.js'] )
+	return gulp.src( ['./src/*.js', './src/js/*.js', '!./src/js/external/*.js'] )
 		.pipe( eslint() )
 		.pipe( eslint.format() );
-		//.pipe( eslint.failOnError() );
+	//.pipe( eslint.failOnError() );
+} );
+
+gulp.task( 'sass', function () {
+	return gulp.src( './src/css/*.scss' )
+		.pipe( sass().on( 'error', sass.logError ) )
+		.pipe( gulp.dest( "./src/css" ) );
 } );
 
 gulp.task( 'copy', function () {
-	return gulp.src( 'src/*.*' )
+	return gulp.src( ['./src/**/*.*', '!./src/**/*.scss'] )
 		.pipe( changed( qdir ) )
 		.pipe( gulp.dest( qdir ) );
 } );
 
 gulp.task( 'watch', function () {
-	gulp.watch( 'src/*.*', ['lint', 'copy'] );
+	gulp.watch( ['./src/**/*.*'], ['lint', 'sass', 'copy'] );
 } );
+
