@@ -1,3 +1,13 @@
+@font-face {
+  font-family: 'Mek Material Icons';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Mek Material Icons'),
+  local('Mek MaterialIcons-Regular'),
+  url('/extensions/mek-dendogram/css/MaterialIcons-Regular.woff') format('woff'),
+  url('/extensions/mek-dendogram/css/MaterialIcons-Regular.ttf') format('truetype');
+}
+
 .mek-dendrogram {
 
   .link {
@@ -36,10 +46,39 @@
     alignment-baseline: central;
   }
 
-  .symbol-icon {
+  .symbol-q {
     font-family: "QlikView Icons";
     alignment-baseline: middle;
   }
+  
+  .symbol-m {
+    font-family: 'Mek Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 24px;  /* Preferred icon size */
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    line-height: 1;
+    text-transform: none;
+    letter-spacing: normal;
+    word-wrap: normal;
+    white-space: nowrap;
+    direction: ltr;
+    alignment-baseline: central;
+
+    /* Support for all WebKit browsers. */
+    -webkit-font-smoothing: antialiased;
+    /* Support for Safari and Chrome. */
+    text-rendering: optimizeLegibility;
+
+    /* Support for Firefox. */
+    -moz-osx-font-smoothing: grayscale;
+
+    /* Support for IE. */
+    font-feature-settings: 'liga';
+  }
+  
 
   .node.node-expandable {
     font-weight: bold;

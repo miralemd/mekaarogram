@@ -75,7 +75,10 @@ function(
 					else if( /^[A-z0-9]{1}$/.exec( symbol ) ) { // text
 						n.symbol = symbol;
 					}
-					else if( /^\([0-9]{2,3}?\)$/.exec( symbol ) ) { // icon
+					else if( /^q-[0-9]{2,3}$/.exec( symbol ) ) { // qlik icon
+						n.symbol = symbol;
+					}
+					else if( /^m-[_a-z0-9]+$/.exec( symbol ) ) { // material icon
 						n.symbol = symbol;
 					}
 					else {

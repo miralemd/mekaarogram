@@ -1027,16 +1027,23 @@ function(
 				d3.select( this ).select( ".symbol-svg" ).remove(); // remove other types of symbols
 				t = this.querySelector( ".symbol-text" );
 				var symbol = d.symbol;
-
-				var isIcon = /^\(([0-9]{2,3})\)$/.exec( symbol );
-				if ( isIcon ) {
-					symbol = String.fromCharCode(isIcon[1]);
+				var match;
+				var classes = "symbol symbol-text";
+				
+				if( (match = /^q-([0-9]{2,3})$/.exec( symbol ) ) ) { // qlik icon
+					symbol = String.fromCharCode( match[1] );
+					classes += " symbol-q";
 				}
+				else if( (match = /^m-([_a-z0-9]+)$/.exec( symbol ) ) ) { // material icon
+					symbol = match[1];
+					classes += " symbol-m";
+				}
+				
 				if ( !t ) { // enter
 					d3.select( this ).append( "text" )
 						.text( symbol )
 						.attr( "text-anchor", "middle")
-						.attr( 'class',  "symbol symbol-text" )
+						.attr( 'class',  classes )
 						.style( "fill-opacity", 1e-6 );
 				}
 
@@ -1046,7 +1053,7 @@ function(
 				var isDarkBackColor = Color.isDark( d.color );
 				d3.select( this ).select( ".symbol-text" )
 					.text( symbol )
-					.attr( "class", "symbol symbol-text" + (isIcon ? " symbol-icon" : "") )
+					.attr( "class", classes )
 					.transition()
 					.duration( duration )
 					.style( "fill", isDarkBackColor ? "#fff" : "#666")
