@@ -64,14 +64,6 @@ function(
 		return "translate(" + d.y + "," + d.x + ")";
 	};
 
-	var radialTextAnchorFn = function ( d ) {
-		return d.x < 180 ? "start" : "end";
-	};
-
-	var linearTextAnchorFn = function ( d ) {
-		return d.canCollapse || d.canExpand || d.children ? "end" : "start";
-	};
-
 	var colorFn = function ( d ) {
 		return ( d.target ? d.target.color : d.color ) || defaultColor;
 	};
@@ -90,37 +82,6 @@ function(
 			this.backendApi.collapseLeft( d.row, d.col, false );
 			this._toggledNode = d;
 		}
-	}
-
-	function getMinMax ( node, prop ) {
-
-		var max = -Number.MIN_VALUE,
-			min = Number.MAX_VALUE;
-
-		if ( node.children ) {
-			node.children.forEach( function ( c ) {
-				var m = getMinMax( c, prop );
-				max = Math.max( max, m.max );
-				min = Math.min( min, m.min );
-			} );
-		}
-
-		max = Math.max( max, node[prop] );
-		min = Math.min( min, node[prop] );
-
-		if ( isNaN( max ) ) {
-			max = min = 1;
-		}
-
-		return {
-			max: max,
-			min: min
-		};
-	}
-
-
-	function updateSelectionStates() {
-
 	}
 
 	function spaceOutLinear( levels, width, labelWeight ) {
@@ -143,7 +104,7 @@ function(
 
 
 
-		levels.forEach( function ( level, i, arr ) {
+		levels.forEach( function ( level, i ) {
 			var lastLevel = levels[Math.max(0, levels.length - 1)];
 			var distanceToPrevious = spacing - level.maxPointSize - (i ? levels[i - 1].maxPointSize : 0);
 			var diff = (1 - labelWeight) * distanceBetween + labelWeight * remainder * level.glyphCountWeight - distanceToPrevious;
@@ -215,7 +176,7 @@ function(
 		} );
 	}
 
-	function canLabelFitVertically( levels, height, maxPointSize ) {
+	function canLabelFitVertically( levels, height ) {
 		// set label visibility based on vertical spacing between nodes
 		levels.forEach( function ( level ) {
 			level.showLabels = true;
@@ -240,7 +201,6 @@ function(
 					return;
 				}
 				//n.y = i * height/arr.length;
-				var dx = 0;
 				var idx = n.levelIndex;
 				var prevX = 0;
 				var nextX = 0;
@@ -335,7 +295,6 @@ function(
 			maxCircleSize = Math.min( maxCircleSize, 0.5 * height / (level.nodes.length || 1) );
 		} );
 
-		var prevMax = maxCircleSize;
 		levels.forEach( function ( level ) {
 			maxCircleSize = Math.min( maxCircleSize, 0.5 * (height-maxCircleSize) / (level.nodes.length || 1) );
 		} );
@@ -442,13 +401,12 @@ function(
 			}
 		}
 	}
-
-
-	function getMaxCircleSize( levels, radius ) {
+	/*
+	function getMaxCircleSize( levels ) {
 		levels.forEach( function ( level, i ) {
 			maxCircleSize = Math.min( maxCircleSize, Math.PI * radiusSpacing * (i + 1) / (level.nodes.length || 1) );
 		} );
-	}
+	}*/
 
 	function spaceOutRadial( levels, radius, labelWeight ) {
 
@@ -485,29 +443,8 @@ function(
 			level.offset = radius - offset;//Math.max( level.minRadius, radius - offset );
 		} );
 	}
-
-	function _canLabelFitRadially( levels, radius, maxPointSize ) {
-		levels.forEach( function( level ) {
-			level.hasVisibleLabels = false;
-			level.nodes.forEach( function( node, i, arr ) {
-				node.showLabel = false;
-				var prev = arr[i ? i-1 : arr.length - 1].x;
-				var next = arr[i < arr.length - 1 ? i+1 : 0].x;
-				var dx = Math.min( Math.abs( arr[i].x - prev ), Math.abs( next - arr[i].x ) );
-				dx *= Math.PI * level.offset / 180;
-				if( arr.length < 2 || dx > 62 ) {
-					node.showLabel = true;
-					level.hasVisibleLabels = true;
-				}
-			} );
-
-			if( !level.hasVisibleLabels ) {
-				level.showLabels = false;
-			}
-		} );
-	}
-
-	function canLabelFitRadially( levels, radius, maxPointSize ) {
+	
+	function canLabelFitRadially( levels ) {
 		levels.forEach( function( level ) {
 			level.showLabels = true;
 			level.numVisibleLabels = 0;
@@ -656,7 +593,7 @@ function(
 		var maxPointSize = Math.max(2, maxCircleSize * (layout.dataPoint && layout.dataPoint.size ? layout.dataPoint.size[1] : 1) );
 		var sizing = d3.scale.linear().domain( [data.min, data.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
 
-		levels = levels.map( function ( level, i ) {
+		levels = levels.map( function ( level ) {
 			return {
 				showLabels: true,
 				nodes: level.nodes,
@@ -794,8 +731,6 @@ function(
 	function _update( source ) {
 		clearTimeout( this._rotationTimer );
 		var self = this,
-			width = self._w,
-			height = self._h,
 			isRadial = this._isRadial;
 
 		var values = isRadial ? calculateRadial( this._data, this._layout, this._w, this._h ) :
@@ -953,7 +888,6 @@ function(
 */
 		var wrap = function ( d ) {
 			var self = d3.select( this ),
-				dx, dy,
 				width = 'textWidth' in d ? d.textWidth : levels[d.depth-1].textWidth,
 				approxFit,
 				textLength,
@@ -1049,7 +983,6 @@ function(
 
 				// update
 				var fontSize = sizeFn( d );
-				var color = 'color' in d ? d.color : defaultColor;
 				var isDarkBackColor = Color.isDark( d.color );
 				d3.select( this ).select( ".symbol-text" )
 					.text( symbol )
@@ -1143,12 +1076,6 @@ function(
 		this._h = h;
 
 		this._radius = Math.min( w, h ) / 2;
-
-		var minPointSize = Math.max( 1, this._radius / 100 );
-		var maxPointSize = Math.min( 40, Math.max( this._radius / 20, 2 ) );
-
-		//this._pointSize = {min: minPointSize, max: maxPointSize};
-		//this._sizing = d3.scale.linear().domain( [this._minMax.min, this._minMax.max] ).rangeRound( [minPointSize, maxPointSize] ).clamp( true );
 
 		this._padding = {
 			left: 0,
