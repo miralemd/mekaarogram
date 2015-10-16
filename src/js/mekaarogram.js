@@ -192,7 +192,7 @@ function(
 				//node.x += maxPointSize;
 			} );
 			nodes.sort( function( a, b ) {
-				return b.nodeSize - a.nodeSize;
+				return b.size - a.size;
 			} );
 
 			nodes.forEach( function ( n, i, arr ) {
@@ -860,9 +860,11 @@ function(
 			.style( "stroke", strokeColorFn )
 			.style( "fill", colorFn )
 			.style( "stroke-width", function ( d ) {
-				return d.canCollapse || d.canExpand ? sizeFn( d ) / 6 : 0;
+				return d.canCollapse || d.canExpand ? d.nodeSize / 6 : 0;
 			} )
-			.attr( "r", sizeFn )
+			.attr( "r", function( d ) {
+				return d.canCollapse || d.canExpand ? d.nodeSize - d.nodeSize / 12 : d.nodeSize;
+			} )
 			.attr( "class", function ( d ) {
 				return (d.children || d._children) ? 'branch' : "leaf";
 			} );
@@ -1000,7 +1002,7 @@ function(
 
 		nodeUpdate.select( ".symbol" )
 			.attr( "transform", function ( d ) {
-				var size = sizeFn( d );
+				var size = d.nodeSize;
 				var scale = size / 20;
 
 				return (d._isSvgSymbol ? "scale(" + scale + "," + scale + ")" : "") + (isRadial ? "rotate(" + (-d.x + 90) + ")" : "");
