@@ -4,7 +4,6 @@
   font-weight: 400;
   src: local('Mek Material Icons'),
   local('Mek MaterialIcons-Regular'),
-  url('/extensions/mek-dendogram/css/MaterialIcons-Regular.woff') format('woff'),
   url('/extensions/mek-dendogram/css/MaterialIcons-Regular.ttf') format('truetype');
 }
 
@@ -43,12 +42,13 @@
 
   .symbol-text {
     font-family: "QlikView Sans", sans-serif;
-    alignment-baseline: central;
+    dominant-baseline: central;
+    text-anchor: middle;
   }
 
   .symbol-q {
     font-family: "QlikView Icons";
-    alignment-baseline: middle;
+    dominant-baseline: middle;
   }
   
   .symbol-m {
@@ -65,7 +65,7 @@
     word-wrap: normal;
     white-space: nowrap;
     direction: ltr;
-    alignment-baseline: central;
+    dominant-baseline: central;
 
     /* Support for all WebKit browsers. */
     -webkit-font-smoothing: antialiased;
