@@ -36,8 +36,9 @@ function(
 	
 	var isIE = (function() {
 		var ua = window.navigator.userAgent;
-		return ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
+		return ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1 || ua.indexOf("Edge") > -1;
 	})();
+	
 
 	function onNodeMouseOver ( d, el, event, isRadial ) {
 		tooltip.current.d = d;
