@@ -1,9 +1,9 @@
 {
-	"name" : "Dendrogram",
+	"name" : "Mekaarogram",
 	"description" : "v0.1.1",
 	"type" : "visualization",
 	"version": "0.1.1",
 	"author": "Miralem Drek",
-	"preview": "clapping.gif",
+	"preview": "assets/mekaarogram.png",
 	"icon": "mek-dendrogram"
 }
