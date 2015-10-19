@@ -7,6 +7,10 @@
   url('/extensions/mek-dendogram/css/MaterialIcons-Regular.ttf') format('truetype');
 }
 
+
+$font-dark: #666;
+$font-light: #fff;
+
 .mek-dendrogram {
 
   .link {
@@ -18,11 +22,13 @@
   }
 
   .label {
-    fill: #666;
+    fill: $font-dark;
     font-weight: normal;
     font-family: "QlikView Sans", sans-serif;
     font-size: 13px;
     opacity: 1.0;
+    dominant-baseline: central;
+//    text-anchor: middle;
 
     text-shadow: 0 1px 0 #fff, 1px 0 0 #fff, -1px 0 0 #fff, 0 -1px 0 #fff;
   }
@@ -44,6 +50,19 @@
     font-family: "QlikView Sans", sans-serif;
     dominant-baseline: central;
     text-anchor: middle;
+    fill: $font-dark; 
+    font-size: 1px;
+    transition-property: font-size, fill;
+    transition-duration: 0.4s;
+    transition-timing-function: ease;
+    
+    &.entering {
+      fill: rgba(255, 255, 255, 0);
+    }
+  }
+  
+  .symbol-text--light {
+    fill: $font-light;
   }
 
   .symbol-q {

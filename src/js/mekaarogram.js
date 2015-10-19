@@ -33,6 +33,11 @@ function(
 	var namespace = ".mekDendrogram";
 	var PADDING = 4;
 	var defaultColor = 'rgb(100, 150, 150)';
+	
+	var isIE = (function() {
+		var ua = window.navigator.userAgent;
+		return ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1;
+	})();
 
 	function onNodeMouseOver ( d, el, event, isRadial ) {
 		tooltip.current.d = d;
@@ -917,11 +922,13 @@ function(
 
 			var t = this.querySelector( ".label" );
 			if ( !t ) { // enter
-				d3.select( this ).append( "text" )
+				t = d3.select( this ).append( "text" )
 					.text( d.name )
-					.attr( "dy", ".35em" )
 					.attr( 'class',  "label" )
 					.style( "fill-opacity", 1e-6 );
+				if( isIE ) {
+					t.attr( "dy", ".30em" ); // IE does not support css property dominant-baseline which vertically centers the text, so we need to shift it manually 
+				}
 			}
 
 			// update
@@ -930,8 +937,6 @@ function(
 				.each( wrap )
 				.attr( "text-anchor", labelAlignment )
 				.attr( 'transform', labelPosition )
-				.transition()
-				.duration( duration )
 				.style( "fill-opacity", 1 );
 		};
 
@@ -976,24 +981,24 @@ function(
 				}
 				
 				if ( !t ) { // enter
-					d3.select( this ).append( "text" )
+					t = d3.select( this ).append( "text" )
 						.text( symbol )
-						.attr( "text-anchor", "middle")
-						.attr( 'class',  classes )
-						.style( "fill-opacity", 1e-6 );
+						.attr( 'class',  classes + " entering" );
 				}
 
 				// update
 				var fontSize = sizeFn( d );
-				var isDarkBackColor = Color.isDark( d.color );
-				d3.select( this ).select( ".symbol-text" )
+				if( Color.isDark( d.color ) ) {
+					classes += " symbol-text--light";
+				}
+				t = d3.select( this ).select( ".symbol-text" )
 					.text( symbol )
 					.attr( "class", classes )
-					.transition()
-					.duration( duration )
-					.style( "fill", isDarkBackColor ? "#fff" : "#666")
-					.style( "fill-opacity", 1 )
-					.style( "font-size", fontSize * 1.2 )
+					.style( "font-size", fontSize * 1.2 + "px" );
+
+				if( isIE ) {
+					t.attr( "dy", /symbol\-m/.exec( classes ) ? ".50em" : "0.30em" ); // IE does not support css property dominant-baseline which vertically centers the text, so we need to shift it manually 
+				}
 			}
 		};
 
@@ -1041,9 +1046,9 @@ function(
 			.attr( "d", diagonal );
 
 		// Transition links to their new position.
-		var linkUpdate = link.transition()
+		var linkUpdate = link.style( 'stroke-width', sizeFn )
+			.transition()
 			.duration( duration )
-			.style( 'stroke-width', sizeFn )
 			.attr( "d", diagonal );
 
 		linkUpdate.attr( "class", function( d ) {
@@ -1226,7 +1231,7 @@ function(
 				.tap( {
 					id: namespace,
 					end: function ( e, data ) {
-						var s = data.relatedTarget && data.relatedTarget.parentElement ? data.relatedTarget.parentElement.className : '';
+						var s = data.relatedTarget && data.relatedTarget.parentNode ? data.relatedTarget.parentNode.className : '';
 						s = s.baseVal || s;
 						if ( s.match(/node-selectable/) ) {
 							onTap( e, d3.select(data.relatedTarget ).data()[0] )
