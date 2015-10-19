@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.5.0
+### General
+* Moved files into better structure 
+* Rewritten and much improved labeling algorithms due to too many issues with text
+* Preview image for extension
+* More gulp tasks
+
+### Features
+* Linked selection model
+* Node size controller
+* Keyboard accelerators for confirm/cancel selections
+* Swedish locale support
+* Icon symbols from Qlik and Material Design icons fonts
+* Enable snapshots
+
+### Fixes
+* Cannot confirm/clear selections if cleared already once
+* Label for last level not visible when last level is not last dimension level
+* Scope css style to extension to avoid overwriting(or getting overwritten by) other extensions
+* Label intersects with node when node has a stroke-width
+* [IE] Vertical alignment of labels
+
 ## 0.1.1
 
 Initial release
