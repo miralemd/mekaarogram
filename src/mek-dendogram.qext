@@ -1,8 +1,8 @@
 {
 	"name" : "Mekaarogram",
-	"description" : "v0.1.1",
+	"description" : "v0.5.0",
 	"type" : "visualization",
-	"version": "0.1.1",
+	"version": "0.5.0",
 	"author": "Miralem Drek",
 	"preview": "assets/mekaarogram.png",
 	"icon": "mek-dendrogram"
