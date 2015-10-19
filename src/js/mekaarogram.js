@@ -466,9 +466,13 @@ function(
 				return b.size - a.size;
 			} );
 
-
 			nodes.forEach( function( n, i, arr ) {
-
+				if( arr.length < 2 ) {
+					n.showLabel = true;
+					level.numVisibleLabels = 1;
+					return;
+				}
+				
 				var idx = n.levelIndex;
 				var prevX = 0;
 				var nextX = 0;
@@ -578,7 +582,7 @@ function(
 		} );
 	}
 
-	function calculateRadial( data, layout, width, height ) {
+	function calculateRadial( data, layout, width, height, rotation ) {
 		var levels = data.levels,
 			arcSize = 360,
 			adaptiveStrokeWidth = layout.adaptiveStrokeWidth,
@@ -682,9 +686,14 @@ function(
 		} );
 
 		expandRadialLabels( levels );
+		
+		var radialShift = 0;
+		if( levels[0].nodes.length === 1 ) {
+			radialShift = -90;
+		}
 
 		nodes.forEach( function ( d ) {
-			d.x = (((d.x + 90 + (arcSize === 360 ? 0 : 0) ) % 360) + 360 ) % 360;
+			d.x = (((d.x + radialShift + (arcSize === 360 ? rotation : 0) ) % 360) + 360 ) % 360;
 
 			d.y = levels[d.depth-1].offset;
 
@@ -738,7 +747,7 @@ function(
 		var self = this,
 			isRadial = this._isRadial;
 
-		var values = isRadial ? calculateRadial( this._data, this._layout, this._w, this._h ) :
+		var values = isRadial ? calculateRadial( this._data, this._layout, this._w, this._h, this._rotation ) :
 			calculateLinear( this._data, this._layout, this._w, this._h );
 
 		var levels = values.levels;
