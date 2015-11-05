@@ -852,15 +852,15 @@ function(
 			if ( d.canExpand || d.canCollapse ) {
 				classes.push( 'node-expandable' );
 			}
-			if ( !d.isLocked && (!self.mySelections.active || self.mySelections.active && self.mySelections.col === d.col) ) {
+			if ( !d.isLocked && (!self.dataSelections.highlight || self.dataSelections.highlight && self.dataSelections.col === d.col) ) {
 				classes.push( "node-selectable" );
 			}
-			if ( self.mySelections.active ) {
+			if ( self.dataSelections.highlight ) {
 				if( !self._isPathSelectActive ) {
 					if ( d.col in self._selectedElemNo && d.elemNo in self._selectedElemNo[d.col] ) {
 						classes.push( 'node-selected' );
 					}
-					else if ( self.mySelections.col !== d.col ) {
+					else if ( self.dataSelections.col !== d.col ) {
 						classes.push( 'unselectable' );
 					}
 				}
@@ -870,7 +870,7 @@ function(
 				else if( self._pathSelected && self._pathSelected[cellId] ) {
 					classes.push( 'node-semi-selected' );
 				}
-				else if ( self.mySelections.col !== d.col ) {
+				else if ( self.dataSelections.col !== d.col ) {
 					classes.push( 'unselectable' );
 				}
 			}
@@ -1170,6 +1170,11 @@ function(
 
 			$timeout = qvangular.getService( "$timeout" );
 
+			this.dataSelections = {
+				highlight: false,
+				active: false
+			};
+
 		},
 		resize: function () {
 			_updateSize.call( this );
@@ -1223,7 +1228,7 @@ function(
 
 
 			function onTap( e, d ) {
-				if ( !self.mySelections.active && e && e.shiftKey ) {
+				if ( !self.dataSelections.highlight && e && e.shiftKey ) {
 					toggle.call( self, d );
 					return;
 				}
@@ -1243,7 +1248,7 @@ function(
 					threshold: 10
 				},
 				start: function ( e, data ) {
-					if ( self.mySelections.active || self._layout.qHyperCube.qAlwaysFullyExpanded ) {
+					if ( self.dataSelections.highlight || self._layout.qHyperCube.qAlwaysFullyExpanded ) {
 						return;
 					}
 					dataPoint = d3.select( data.relatedTarget ).data();
@@ -1295,14 +1300,8 @@ function(
 		},
 		paint: function ( $element, layout ) {
 
-			if ( !this.mySelections ) {
-				this.mySelections = {
-					active: false
-				};
-			}
-
-			this.mySelections.active = false;
-			this.mySelections.col = -1;
+			this.dataSelections.highlight = false;
+			this.dataSelections.col = -1;
 
 			var data = dataProcessor.process( layout ),
 				w, h;
@@ -1344,7 +1343,7 @@ function(
 		},
 		togglePathSelect: function() {
 			this._isPathSelectActive = !this._isPathSelectActive;
-			if ( this.mySelections.active ) {
+			if ( this.dataSelections.highlight ) {
 				selections.switchSelectionModel.call( this, this._isPathSelectActive );
 				//selections.select.call( this );
 			}
@@ -1372,10 +1371,7 @@ function(
 					  return active;
 				  },
 				  isDisabled: function () {
-					  if ( view.isPathSelectionDisabled() ) {
-						  return true;
-					  }
-					  return false;
+					  return view.isPathSelectionDisabled();
 				  }
 			  }], [] );
 		},

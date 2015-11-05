@@ -6,14 +6,17 @@ function(
 	
 ){
 
-	function clearSelections ( endSelections ) {
+	function clearSelections ( endSelections, endHighlight ) {
 		this._selectedElemNo = {};
 		this._pathSelected = {};
 		this._selectedCells = {};
 
-		if ( endSelections ) {
-			this.mySelections.active = false;
+		if ( endSelections || endHighlight ) {
+			this.dataSelections.highlight = false;
 			this._root.attr( "class", "root" );
+		}
+		if( endSelections ) {
+			this.dataSelections.active = false;
 		}
 	}
 
@@ -31,7 +34,7 @@ function(
 			if ( !obj.selectionsEnabled ) {
 				return;
 			}
-			if ( !obj.backendApi.inSelections() ) {
+			if ( !obj.dataSelections.active ) {
 				var $scope = obj.$scope;
 				//map functions for toolbar
 				$scope.selectionsApi.confirm = function () {
@@ -41,7 +44,7 @@ function(
 					} );
 				};
 				$scope.selectionsApi.cancel = function () {
-					clearSelections.call( obj, false );
+					clearSelections.call( obj, true );
 					$scope.backendApi.endSelections( false );
 					$scope.selectionsApi.deactivated();
 				};
@@ -50,7 +53,7 @@ function(
 					obj.deactivated();
 				};
 				$scope.selectionsApi.clear = function () {
-					clearSelections.call( obj, true );
+					clearSelections.call( obj, false, true );
 					$scope.backendApi.clearSelections();
 					$scope.selectionsApi.selectionsMade = false;
 					obj.resize();
@@ -60,6 +63,7 @@ function(
 				obj.backendApi.beginSelections();
 				$scope.selectionsApi.activated();
 				$scope.selectionsApi.selectionsMade = true;
+				obj.dataSelections.active = true;
 			}
 
 			if ( !cells.length ) {
@@ -71,11 +75,12 @@ function(
 					obj.backendApi.clearSelections();
 				}
 				if ( cells ) {
-					selectCells.call( obj.backendApi, cells  )
+					selectCells.call( obj.backendApi, cells ).then( function( res ) {
+						if( !res.qSuccess ) {
+							obj.$scope.selectionsApi.clear();
+						}
+					} );
 				}
-				//else {
-				//	obj.backendApi.select( qValues, [qDimNo], 'L' );
-				//}
 				obj.$scope.selectionsApi.selectionsMade = true;
 			}
 		},
@@ -90,9 +95,9 @@ function(
 					return;
 				}
 	
-				if ( !this.mySelections.active ) {
-					this.mySelections.active = true;
-					this.mySelections.col = node.col;
+				if ( !this.dataSelections.highlight ) {
+					this.dataSelections.highlight = true;
+					this.dataSelections.col = node.col;
 					this._root.attr( "class", "root inSelections" );
 				}
 				
@@ -175,7 +180,7 @@ function(
 				this._selectedCells = {};
 				this._pathSelected = {};
 				
-				var nodes = this.levels[this.mySelections.col].nodes;
+				var nodes = this.levels[this.dataSelections.col].nodes;
 				nodes.forEach( function( node ) {
 					if ( node.elemNo in this._selectedElemNo[node.col] ) {
 						this._selectedCells[ node.col + ";" + node.row ] = node.elemNo;
@@ -211,7 +216,7 @@ function(
 					}
 				}
 				this._selectElemNo = {};
-				this._selectedElemNo[this.mySelections.col] = elemNo;
+				this._selectedElemNo[this.dataSelections.col] = elemNo;
 				
 				//for ( var col in this._selectedElemNo ) {
 				//	for ( var elemNo in this._selectedElemNo[col] ) {
