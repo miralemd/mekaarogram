@@ -30,8 +30,8 @@ function(
 	
 	$( "<style>" + style + "</style>" ).appendTo( "head" );
 	
-	// set custom icon for extensions in assets panel
-	$( "<style>[data-icon='mek-dendrogram']:before { content: '?'; } .icon-mek-dendrogram:before {content: '?';}</style>" ).appendTo("head");
+	// set custom icon for dendro extension in assets panel
+	$( "<style>.assets-list li[title='Mekaarogram'] .icon-extension::before { content: '?'; }</style>" ).appendTo("head");
 	
 	if( !components.hasComponent( "pivot-sorting" ) ) {
 		components.addComponent( "pivot-sorting", pivotSorting );
