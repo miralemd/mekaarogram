@@ -6,6 +6,7 @@ define( [
 	'objects.extension/default-view',
 	'objects.extension/default-selection-toolbar',
 	'objects.utils/event-utils',
+	'client.utils/state',
 	
 	'./selection',
 	'./tooltip',
@@ -22,6 +23,7 @@ function(
 	DefaultView,
 	DefaultSelectionToolbar,
 	EventUtils,
+	State,
 	
 	selections,
 	tooltip,
@@ -33,6 +35,11 @@ function(
 	var namespace = ".mekDendrogram";
 	var PADDING = 4;
 	var defaultColor = 'rgb(100, 150, 150)';
+	
+	var globals = {
+		instances: 0,
+		svgDefs: undefined
+	};
 	
 	var isIE = (function() {
 		var ua = window.navigator.userAgent;
@@ -1099,29 +1106,59 @@ function(
 			right: 0
 		};
 	}
+	
+	// svg defs contanining url to document defined elements need to have their
+	// refs updated to point to absolute path of the element due to the change of base href in client.html
+	function updateRefs( svg ) {
+		$( svg ).find("[fill^='url(']" ).each( function( i, el ) {
+			var value = el.getAttribute("fill");
+			var ref = /#([A-z0-9-]+)\)$/.exec( value );
+			if( ref && ref[1] ) {
+				el.setAttribute("fill", "url(" + location.href + "#" + ref[1] + ")" );
+			}
+		} );
+	}
+	
+	function onLocationChange() {
+		
+		if( globals.svgDefs ) {
+			setTimeout( function() {
+				if( globals.svgDefs && globals.svgDefs.parentNode ) {
+					updateRefs( globals.svgDefs );
+				}
+			} );
+		}
+	}
 
 	var Dendrogram = DefaultView.extend( "Dendrogram", {
 		init: function () {
 			this._super.apply( this, arguments );
-
-			//$("<div class='marker p-50-50'></div><div class='marker p-25'></div><div class='marker p-33'></div><div class='marker p-50'></div><div class='marker p-66'></div><div class='marker p-75'></div>" ).appendTo( this.$element );
+			
+			globals.instances++;
 
 			this.$element.addClass( "mek-dendrogram" );
-			d3.select( this.$element[0] ).append( "svg" )
-				.attr( {
-					xmlns: "http://www.w3.org/2000/svg",
-					xlink: "http://www.w3.org/1999/xlink"
-				} ).style( 'display', 'none' );
-
-
+			
+			if( !globals.svgDefs ) {
+				var doc = new DOMParser().parseFromString( defs, "application/xml" );
+				if ( doc.documentElement.nodeName !== "parsererror" ) {
+					globals.svgDefs = document.importNode( doc.documentElement, true );
+					globals.svgDefs.style.position = "absolute";
+					globals.svgDefs.style.opacity = "0";
+					globals.svgDefs.style.zIndex = "-1";
+				}
+			}
+			
+			if ( globals.svgDefs && !globals.svgDefs.parentNode ) {
+				document.body.appendChild( globals.svgDefs );
+				updateRefs( globals.svgDefs );
+				State.StateChanged.bind( onLocationChange );
+			}
 
 			var svg = d3.select( this.$element[0] ).append( "svg" )
 				.attr( {
 					xmlns: "http://www.w3.org/2000/svg",
 					xlink: "http://www.w3.org/1999/xlink"
 				} );
-
-			this.$element.find( "svg" ).eq(0 ).html( defs );
 
 			//svg.append( "style" ).text( embedStyle );
 
@@ -1344,6 +1381,14 @@ function(
 		},
 		selectValues: function ( cells, clearOld ) {
 			selections.selectValues( this, cells, clearOld );
+		},
+		destroy: function() {
+			globals.instances--;
+			
+			if( globals.instances <= 0 && globals.svgDefs && globals.svgDefs.parentNode ){
+				globals.svgDefs.parentNode.removeChild( globals.svgDefs );
+				State.StateChanged.unbind( onLocationChange );
+			}
 		}
 	} );
 
