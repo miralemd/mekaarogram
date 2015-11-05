@@ -109,6 +109,13 @@ $font-light: #fff;
     stroke-width: 0;
     opacity: 1.0;
   }
+  
+  .node use {
+    pointer-events: none;
+    touch-action: none;
+    ms-touch-action: none;
+  }
+  
 
   .node.node-selectable {
     cursor: pointer;
