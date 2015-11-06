@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.0
+* Added emojis wink, surprised and cheeky
+* Wider support for character symbols
+### Fixes
+* Selection toolbar gets stuck when `qSuccess` on selection is false
+* [IE] Selecting nodes does not work when emoji is visible 
+
 ## 0.5.0
 ### General
 * Moved files into better structure 
