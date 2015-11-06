@@ -60,7 +60,7 @@ function(
 		data: {
 			dimensions: {
 				min: 1,
-				nax: 10
+				max: 10
 			},
 			measures: {
 				min: 1,
