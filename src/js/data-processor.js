@@ -72,7 +72,7 @@ function(
 					if ( symbol && symbols[symbol] ) {
 						n.symbol = symbols[symbol].url;
 					}
-					else if( /^[A-z0-9]{1}$/.exec( symbol ) ) { // text
+					else if( /^\S{1}$/.exec( symbol ) ) { // text
 						n.symbol = symbol;
 					}
 					else if( /^q-[0-9]{2,3}$/.exec( symbol ) ) { // qlik icon
