@@ -30,8 +30,8 @@ function(
 				type: n.qType,
 				col: depth,
 				isLocked: layout.qHyperCube.qDimensionInfo[depth].qLocked,
-				canExpand: n.qCanExpand && n.qType !== 'A',
-				canCollapse: n.qCanCollapse && n.qType !== 'A',
+				canExpand: n.qCanExpand && n.qType !== 'A' && n.qType !== 'U',
+				canCollapse: n.qCanCollapse && n.qType !== 'A' && n.qType !== 'U',
 				dimensions: dimensions,
 				measures: measures
 			};
@@ -41,7 +41,7 @@ function(
 				} ).map( function( node ) {
 					return nest( node, depth + 1);
 				} ).filter( function( n ) {
-					return n.type !== "A"; 
+					return n.type !== "A" && n.type !== "U"; 
 				} );
 					
 			}
@@ -51,7 +51,7 @@ function(
 		var children = pages.qLeft.map( function( node ) {
 			return nest( node, 0 );
 		} ).filter( function( n ){
-			return n.type !== 'A';
+			return n.type !== 'A' && n.type !== "U";
 		} );
 
 		var data = {
