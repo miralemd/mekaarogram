@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.6.2
+* Added show null nodes option
+* Added split totals functionality 
+
 ## 0.6.0
 * Added emojis wink, surprised and cheeky
 * Wider support for character symbols
