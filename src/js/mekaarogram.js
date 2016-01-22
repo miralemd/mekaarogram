@@ -47,10 +47,11 @@ function(
 	})();
 	
 
-	function onNodeMouseOver ( d, el, event, isRadial ) {
+	function onNodeMouseOver ( d, el, event, isRadial, showSelf ) {
 		tooltip.current.d = d;
 		tooltip.current.el = el;
 		tooltip.current.isRadial = isRadial;
+		tooltip.current.showSelfValue = showSelf;
 
 		tooltip.activate();
 	}
@@ -807,7 +808,7 @@ function(
 			} )
 			.attr( "transform", enteringTransform )
 			.on( "mouseenter", function ( d ) {
-				onNodeMouseOver( d, this, d3.event, isRadial );
+				onNodeMouseOver( d, this, d3.event, isRadial, self._layout.selfNodes );
 			} )
 			.on( "mouseleave", function ( d ) {
 				onNodeMouseLeave( d, null, d3.event );

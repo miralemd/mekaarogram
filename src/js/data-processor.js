@@ -23,6 +23,7 @@ function(
 		});
 		function nest( n, depth ) {
 
+			
 			var values = pages.qData[row];
 			var ret = {
 				name: n.qType === 'O' ? layout.qHyperCube.qDimensionInfo[depth].othersLabel : n.qText,
@@ -43,9 +44,15 @@ function(
 				} ).map( function( node ) {
 					return nest( node, depth + 1);
 				} ).filter( function( n ) {
+					if( n.type === "U" ) {
+						ret.selfNode = n;
+					}
 					return n.type !== "A" && (hideNullNodes ? n.type !== "U" : true); 
 				} );
 					
+			}
+			if( ret.selfNode && !ret.children.length ) {
+				delete ret.selfNode;
 			}
 			return ret;
 		}
@@ -64,13 +71,14 @@ function(
 		};
 
 		function mapValuesToProperties( n ) {
-			if ( n.values ) {
+			var values = layout.selfNodes && n.selfNode ? n.selfNode.values : n.values
+			if ( values ) {
 				// size
-				n.size = isNaN( n.values[0].qNum ) ? 1 : n.values[0].qNum;
+				n.size = isNaN( values[0].qNum ) ? 1 : values[0].qNum;
 
 				//symbol
-				if ( n.values[0].qAttrExps && n.values[0].qAttrExps.qValues && n.values[0].qAttrExps.qValues[1] ) {
-					var symbol = n.values[0].qAttrExps.qValues[1].qText;
+				if ( values[0].qAttrExps && values[0].qAttrExps.qValues && values[0].qAttrExps.qValues[1] ) {
+					var symbol = values[0].qAttrExps.qValues[1].qText;
 					if ( symbol && symbols[symbol] ) {
 						n.symbol = symbols[symbol].url;
 					}
@@ -92,9 +100,9 @@ function(
 				}
 				
 				//color
-				if ( n.values[0].qAttrExps && n.values[0].qAttrExps.qValues && n.values[0].qAttrExps.qValues[0] &&
-					( n.values[0].qAttrExps.qValues[0].qNum !== 'NaN' ||  n.values[0].qAttrExps.qValues[0].qText ) ) {
-					var colorArg = n.values[0].qAttrExps.qValues[0].qNum !== 'NaN' ? n.values[0].qAttrExps.qValues[0].qNum : n.values[0].qAttrExps.qValues[0].qText;
+				if ( values[0].qAttrExps && values[0].qAttrExps.qValues && values[0].qAttrExps.qValues[0] &&
+					( values[0].qAttrExps.qValues[0].qNum !== 'NaN' || values[0].qAttrExps.qValues[0].qText ) ) {
+					var colorArg = values[0].qAttrExps.qValues[0].qNum !== 'NaN' ? values[0].qAttrExps.qValues[0].qNum : values[0].qAttrExps.qValues[0].qText;
 					var color = new Color( colorArg, 'argb' );
 					if ( !color.isInvalid() ) {
 						n.color = color.toRGB();

@@ -62,7 +62,13 @@ define( [], function () {
 								ref: "qHyperCubeDef.qAlwaysFullyExpanded",
 								type: "boolean",
 								translation: "properties.pivot.fullyExpanded",
-								defaultValue: false
+								defaultValue: true
+							},
+							selfNodes: {
+								type: "boolean",
+								ref: "selfNodes",
+								defaultValue: false,
+								translation: "mek.excludeDescendants"
 							},
 							adaptiveStrokeWidth: {
 								type: "boolean",

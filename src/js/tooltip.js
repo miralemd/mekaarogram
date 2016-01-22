@@ -1,9 +1,11 @@
 define( [
-	"qvangular"
+	"qvangular",
+	"translator"
 ],
 /** @owner Miralem Drek (mek) */
 function(
-	qvangular
+	qvangular,
+	translator
 ){
 	var tooltip = {
 		openTimer: null,
@@ -14,7 +16,8 @@ function(
 	};
 
 	function showTooltip( d, el ) {
-		var isRadial = tooltip.current.isRadial;
+		var isRadial = tooltip.current.isRadial,
+			showSelf = tooltip.current.showSelfValue;
 		if ( !d ) {
 			d = tooltip.current.d;
 			el = tooltip.current.el;
@@ -25,6 +28,7 @@ function(
 		}
 
 		var rect = el.getBoundingClientRect(),
+			rows = [{ label: d.measures[0], value: d.values[0].qText}];
 			directions = isRadial && (d.x < 90 || d.x > 270) ? ["bottom", "top", "left", "right"] : ["top", "bottom", "left", "right"],
 			positions = directions.map( function( dir ){
 				switch ( dir ) {
@@ -37,12 +41,17 @@ function(
 					case 'right':
 						return { x: rect.right, y:rect.top+rect.height/2};
 				}
-			});
+			} );
+		
+		if( showSelf && d.selfNode ) {
+			rows.push( { label: d.measures[0] + " " + translator.get("mek.includingDescendants"), value: d.values[0].qText} );
+			rows[0].value = d.selfNode.values[0].qText;
+		}
 
 		qvangular.getService("qvChartTooltipService" ).open( {
 			content: [{
 						  header: d.name,
-						  rows: [{ label: d.measures[0], value: d.values[0].qText}]
+						  rows: rows
 					  }],
 			position: positions,
 			direction: directions
