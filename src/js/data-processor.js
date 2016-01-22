@@ -10,6 +10,8 @@ function(
 	
 	function processData( layout ) {
 		var pages = layout.qHyperCube.qPivotDataPages[0];
+		
+		var hideNullNodes = layout.showNullNodes !== true;
 
 		var row = 0;
 		
@@ -41,7 +43,7 @@ function(
 				} ).map( function( node ) {
 					return nest( node, depth + 1);
 				} ).filter( function( n ) {
-					return n.type !== "A" && n.type !== "U"; 
+					return n.type !== "A" && (hideNullNodes ? n.type !== "U" : true); 
 				} );
 					
 			}
@@ -51,7 +53,7 @@ function(
 		var children = pages.qLeft.map( function( node ) {
 			return nest( node, 0 );
 		} ).filter( function( n ){
-			return n.type !== 'A' && n.type !== "U";
+			return n.type !== 'A' && (hideNullNodes ? n.type !== "U" : true);
 		} );
 
 		var data = {

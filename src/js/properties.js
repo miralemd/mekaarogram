@@ -87,6 +87,12 @@ define( [], function () {
 								step: 0.05,
 								defaultValue: 0.5
 							},
+							nullNodes: {
+								type: "boolean",
+								ref: "showNullNodes",
+								defaultValue: false,
+								translation: "mek.showNullNodes"
+							}
 						}
 					}
 				}
