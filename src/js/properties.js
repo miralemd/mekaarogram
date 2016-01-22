@@ -58,23 +58,14 @@ define( [], function () {
 								step: 0.05,
 								defaultValue: [0.2, 0.8]
 							},
-							expanded: {
-								ref: "qHyperCubeDef.qAlwaysFullyExpanded",
-								type: "boolean",
-								translation: "properties.pivot.fullyExpanded",
-								defaultValue: true
-							},
-							selfNodes: {
-								type: "boolean",
-								ref: "selfNodes",
-								defaultValue: false,
-								translation: "mek.excludeDescendants"
-							},
 							adaptiveStrokeWidth: {
 								type: "boolean",
 								ref: "adaptiveStrokeWidth",
 								defaultValue: true,
-								translation: "mek.dynamicLinkWidth"
+								translation: "mek.dynamicLinkWidth",
+								show: function( data, handler ) {
+									return handler.getDimensions().length > 1;
+								}
 							},
 							radial: {
 								type: "boolean",
@@ -82,7 +73,7 @@ define( [], function () {
 								defaultValue: false,
 								translation: "mek.radial"
 							},
-							spacing: {
+							labelWeight: {
 								show: false,
 								type: "number",
 								component: "slider",
@@ -93,6 +84,25 @@ define( [], function () {
 								step: 0.05,
 								defaultValue: 0.5
 							},
+							expanded: {
+								ref: "qHyperCubeDef.qAlwaysFullyExpanded",
+								type: "boolean",
+								translation: "properties.pivot.fullyExpanded",
+								defaultValue: true,
+								show: function( data, handler ) {
+									return handler.getDimensions().length > 1;
+								}
+							},
+							selfNodes: {
+								type: "boolean",
+								ref: "selfNodes",
+								defaultValue: false,
+								translation: "mek.excludeDescendants",
+								show: function( data, handler ) {
+									return handler.getDimensions().length > 1;
+								}
+							},
+							
 							nullNodes: {
 								type: "boolean",
 								ref: "showNullNodes",
