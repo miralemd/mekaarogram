@@ -44,12 +44,11 @@ function(
 				} ).map( function( node ) {
 					return nest( node, depth + 1);
 				} ).filter( function( n ) {
-					if( n.type === "U" ) {
+					if( n.type === "U" || n.type === "A" ) {
 						ret.selfNode = n;
 					}
-					return n.type !== "A" && (hideNullNodes ? n.type !== "U" : true); 
+					return hideNullNodes ? ( n.type !== "A" && n.type !== "U" ) : true; 
 				} );
-					
 			}
 			if( ret.selfNode && !ret.children.length ) {
 				delete ret.selfNode;
@@ -60,7 +59,7 @@ function(
 		var children = pages.qLeft.map( function( node ) {
 			return nest( node, 0 );
 		} ).filter( function( n ){
-			return n.type !== 'A' && (hideNullNodes ? n.type !== "U" : true);
+			return hideNullNodes ? ( n.type !== "A" && n.type !== "U" ) : true;
 		} );
 
 		var data = {
