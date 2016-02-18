@@ -49,8 +49,8 @@ function(
 				qDimensions: [],
 				qMeasures: [],
 				qInitialDataFetch: [{
-					qWidth: 10,
-					qHeight: 1000
+					qWidth: 1,
+					qHeight: 10000
 				}]
 			}
 		},
