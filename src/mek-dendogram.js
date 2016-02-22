@@ -4,8 +4,8 @@ define( [
 	'translator',
 	'objects.extension/object-conversion',
 	'client.property-panel/components/components',
-	'extensions.qliktech/pivot-table/properties/pivot-sorting/pivot-sorting',
 	'objects.backend-api/pivot-api',
+	'require',
 	
 	'./js/mekaarogram',
 	'./js/properties',
@@ -17,8 +17,8 @@ function(
 	translator,
 	objectConversion,
 	components,
-	pivotSorting,
 	PivotApi,
+	require,
 	
 	Dendrogram,
 	properties,
@@ -33,9 +33,13 @@ function(
 	// set custom icon for dendro extension in assets panel
 	$( "<style>.assets-list li[title='Mekaarogram'] .icon-extension::before { content: '?'; }</style>" ).appendTo("head");
 	
-	if( !components.hasComponent( "pivot-sorting" ) ) {
-		components.addComponent( "pivot-sorting", pivotSorting );
-	}
+	// load existing client module
+	// will throw error outside of client-build since the component is not included in such builds 
+	require( ['extensions.qliktech/pivot-table/properties/pivot-sorting/pivot-sorting'], function( pivotSorting ) {
+		if( !components.hasComponent( "pivot-sorting" ) ) {
+			components.addComponent( "pivot-sorting", pivotSorting );
+		}
+	}, function() {} );
 
 	return {
 		definition: properties,
