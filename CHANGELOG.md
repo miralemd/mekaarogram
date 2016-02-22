@@ -1,4 +1,12 @@
 # Changelog
+## 0.6.4
+### General
+* Change initial fetch to 10k rows
+
+### Fixes
+* Extension error in mashup environment due to missing pivot-sorting module
+* Nodes being shown as collapsable even when not having any children
+* Old null nodes of type `A` are not shown
 
 ## 0.6.2
 * Added show null nodes option
@@ -7,6 +15,7 @@
 ## 0.6.0
 * Added emojis wink, surprised and cheeky
 * Wider support for character symbols
+
 ### Fixes
 * Selection toolbar gets stuck when `qSuccess` on selection is false
 * [IE] Selecting nodes does not work when emoji is visible 
