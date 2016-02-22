@@ -49,6 +49,7 @@ function(
 					}
 					return hideNullNodes ? ( n.type !== "A" && n.type !== "U" ) : true; 
 				} );
+				ret.canCollapse = ret.canCollapse && ret.children.length; // can't collapse if there are no children
 			}
 			if( ret.selfNode && !ret.children.length ) {
 				delete ret.selfNode;
