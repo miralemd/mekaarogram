@@ -1,4 +1,7 @@
 # Changelog
+## 0.6.5
+* Update container element to work in Sense 3.0
+
 ## 0.6.4
 ### General
 * Change initial fetch to 10k rows
