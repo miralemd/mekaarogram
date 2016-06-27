@@ -7,7 +7,7 @@ define( [
 	'objects.extension/default-selection-toolbar',
 	'objects.utils/event-utils',
 	'client.utils/state',
-	
+
 	'./selection',
 	'./tooltip',
 	'./data-processor',
@@ -24,7 +24,7 @@ function(
 	DefaultSelectionToolbar,
 	EventUtils,
 	State,
-	
+
 	selections,
 	tooltip,
 	dataProcessor,
@@ -35,17 +35,17 @@ function(
 	var namespace = ".mekDendrogram";
 	var PADDING = 4;
 	var defaultColor = 'rgb(100, 150, 150)';
-	
+
 	var globals = {
 		instances: 0,
 		svgDefs: undefined
 	};
-	
+
 	var isIE = (function() {
 		var ua = window.navigator.userAgent;
 		return ua.indexOf("MSIE ") > -1 || ua.indexOf("Trident/") > -1 || ua.indexOf("Edge") > -1;
 	})();
-	
+
 
 	function onNodeMouseOver ( d, el, event, isRadial, showSelf ) {
 		tooltip.current.d = d;
@@ -457,7 +457,7 @@ function(
 			level.offset = radius - offset;//Math.max( level.minRadius, radius - offset );
 		} );
 	}
-	
+
 	function canLabelFitRadially( levels ) {
 		levels.forEach( function( level ) {
 			level.showLabels = true;
@@ -481,7 +481,7 @@ function(
 					level.numVisibleLabels = 1;
 					return;
 				}
-				
+
 				var idx = n.levelIndex;
 				var prevX = 0;
 				var nextX = 0;
@@ -695,7 +695,7 @@ function(
 		} );
 
 		expandRadialLabels( levels );
-		
+
 		var radialShift = 0;
 		if( levels[0].nodes.length === 1 ) {
 			radialShift = -90;
@@ -801,7 +801,7 @@ function(
 				return d.id || (d.id = ++i);
 			} );
 
-		// attach new nodes to parent's previous position (position to transition from) 
+		// attach new nodes to parent's previous position (position to transition from)
 		var nodeEnter = node.enter().append( "g" )
 			.attr( "class", function ( d ) {
 				return "node " + ((d.children || d._children) ? 'branch' : "leaf");
@@ -945,7 +945,7 @@ function(
 					.attr( 'class',  "label" )
 					.style( "fill-opacity", 1e-6 );
 				if( isIE ) {
-					t.attr( "dy", ".30em" ); // IE does not support css property dominant-baseline which vertically centers the text, so we need to shift it manually 
+					t.attr( "dy", ".30em" ); // IE does not support css property dominant-baseline which vertically centers the text, so we need to shift it manually
 				}
 			}
 
@@ -988,7 +988,7 @@ function(
 				var symbol = d.symbol;
 				var match;
 				var classes = "symbol symbol-text";
-				
+
 				if( (match = /^q-([0-9]{2,3})$/.exec( symbol ) ) ) { // qlik icon
 					symbol = String.fromCharCode( match[1] );
 					classes += " symbol-q";
@@ -997,7 +997,7 @@ function(
 					symbol = match[1];
 					classes += " symbol-m";
 				}
-				
+
 				if ( !t ) { // enter
 					t = d3.select( this ).append( "text" )
 						.text( symbol )
@@ -1015,7 +1015,7 @@ function(
 					.style( "font-size", fontSize * 1.2 + "px" );
 
 				if( isIE ) {
-					t.attr( "dy", /symbol\-m/.exec( classes ) ? ".50em" : "0.30em" ); // IE does not support css property dominant-baseline which vertically centers the text, so we need to shift it manually 
+					t.attr( "dy", /symbol\-m/.exec( classes ) ? ".50em" : "0.30em" ); // IE does not support css property dominant-baseline which vertically centers the text, so we need to shift it manually
 				}
 			}
 		};
@@ -1107,7 +1107,7 @@ function(
 			right: 0
 		};
 	}
-	
+
 	// svg defs contanining url to document defined elements need to have their
 	// refs updated to point to absolute path of the element due to the change of base href in client.html
 	function updateRefs( svg ) {
@@ -1119,9 +1119,9 @@ function(
 			}
 		} );
 	}
-	
+
 	function onLocationChange() {
-		
+
 		if( globals.svgDefs ) {
 			setTimeout( function() {
 				if( globals.svgDefs && globals.svgDefs.parentNode ) {
@@ -1134,11 +1134,14 @@ function(
 	var Dendrogram = DefaultView.extend( "Dendrogram", {
 		init: function () {
 			this._super.apply( this, arguments );
-			
+
 			globals.instances++;
 
+			this.$element.children().first();
+			var el = this.$element.children().length ? this.$element.children()[0] : this.$element[0];
+
 			this.$element.addClass( "mek-dendrogram" );
-			
+
 			if( !globals.svgDefs ) {
 				var doc = new DOMParser().parseFromString( defs, "application/xml" );
 				if ( doc.documentElement.nodeName !== "parsererror" ) {
@@ -1148,14 +1151,14 @@ function(
 					globals.svgDefs.style.zIndex = "-1";
 				}
 			}
-			
+
 			if ( globals.svgDefs && !globals.svgDefs.parentNode ) {
 				document.body.appendChild( globals.svgDefs );
 				updateRefs( globals.svgDefs );
 				State.StateChanged.bind( onLocationChange );
 			}
 
-			var svg = d3.select( this.$element[0] ).append( "svg" )
+			var svg = d3.select( el ).append( "svg" )
 				.attr( {
 					xmlns: "http://www.w3.org/2000/svg",
 					xlink: "http://www.w3.org/1999/xlink"
@@ -1381,7 +1384,7 @@ function(
 		},
 		destroy: function() {
 			globals.instances--;
-			
+
 			if( globals.instances <= 0 && globals.svgDefs && globals.svgDefs.parentNode ){
 				globals.svgDefs.parentNode.removeChild( globals.svgDefs );
 				State.StateChanged.unbind( onLocationChange );
