@@ -3,8 +3,14 @@ var eslint = require( 'gulp-eslint' );
 var sass = require( 'gulp-sass' );
 var changed = require( 'gulp-changed' );
 var uglify = require( 'gulp-uglify' );
+var os = require( "os" );
+var path = require( "path" );
 
-var qdir = (process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'] ) + "\\Documents\\Qlik\\Sense\\Extensions\\dendrogram";
+var qdirpath = [os.homedir(), "Qlik", "Sense", "Extensions", "dendrogram"];
+if( os.platform() === "win32" ) {
+	qdirpath.splice( 1, 0, "Documents" );
+}
+var qdir = path.resolve.apply( path, qdirpath );
 
 gulp.task( 'default', function () {
 	// task
