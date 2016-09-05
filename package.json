@@ -4,7 +4,11 @@
   "description": "",
   "main": "src/mek-dendogram.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack -p",
+    "build:debug": "webpack -d",
+    "build:watch": "webpack -d --watch",
+    "lint": "eslint src/js",
+    "lint:fix": "eslint src/js --fix"
   },
   "repository": {
     "type": "git",
@@ -14,11 +18,25 @@
   "private": true,
   "license": "ISC",
   "devDependencies": {
+    "babel-cli": "^6.14.0",
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.14.0",
+    "cpy": "^4.0.1",
+    "css-loader": "^0.24.0",
+    "eslint": "^3.4.0",
     "gulp": "^3.9.0",
     "gulp-changed": "^1.3.0",
     "gulp-copy": "0.0.2",
     "gulp-eslint": "^1.0.0",
     "gulp-sass": "^2.0.4",
-    "gulp-uglify": "^1.4.2"
+    "gulp-uglify": "^1.4.2",
+    "html-loader": "^0.4.3",
+    "node-sass": "^3.9.0",
+    "on-build-webpack": "^0.1.0",
+    "sass-loader": "^4.0.1",
+    "watch": "^0.19.2",
+    "webpack": "^1.13.2",
+    "yargs": "^5.0.0"
   }
 }
