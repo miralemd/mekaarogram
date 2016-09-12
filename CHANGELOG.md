@@ -1,4 +1,9 @@
 # Changelog
+## 0.6.6
+* Switch to es6 modules and webpack for building
+* [Fix] Build path to Sense folder is wrong on OSX
+* [Fix] requirejs text! prefix isn't working cross-site with current client config
+
 ## 0.6.5
 * Update container element to work in Sense 3.0
 
@@ -13,7 +18,7 @@
 
 ## 0.6.2
 * Added show null nodes option
-* Added split totals functionality 
+* Added split totals functionality
 
 ## 0.6.0
 * Added emojis wink, surprised and cheeky
@@ -21,11 +26,11 @@
 
 ### Fixes
 * Selection toolbar gets stuck when `qSuccess` on selection is false
-* [IE] Selecting nodes does not work when emoji is visible 
+* [IE] Selecting nodes does not work when emoji is visible
 
 ## 0.5.0
 ### General
-* Moved files into better structure 
+* Moved files into better structure
 * Rewritten and much improved labeling algorithms due to too many issues with text
 * Preview image for extension
 * More gulp tasks
