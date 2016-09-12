@@ -24,7 +24,7 @@ var qdir = path.resolve.apply( path, qdirpath );
 var isWatching = yargs.argv.watch;
 
 function onBuild() {
- 	cpy( [qname + ".qext", "external/*.*", "assets/*.*", "css/*.ttf"], output, {
+ 	cpy( [qname + ".qext", "external/*.*", "assets/*.png", "css/*.ttf"], output, {
  		cwd: srcDir,
     parents: true
  	} ).then( function() {
