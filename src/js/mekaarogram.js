@@ -1,38 +1,3 @@
-
-/*define( [
-	'jquery',
-	'qvangular',
-	"general.utils/color",
-	'objects.extension/default-view',
-	'objects.extension/default-selection-toolbar',
-	'objects.utils/event-utils',
-	'client.utils/state',
-
-	'./selection',
-	'./tooltip',
-	'./data-processor',
-	'text!../assets/defs.html',
-
-	'./external/d3',
-	'objects.views/charts/tooltip/chart-tooltip-service'
-],
-
-
-function(
-	$,
-	qvangular,
-	Color,
-	DefaultView,
-	DefaultSelectionToolbar,
-	EventUtils,
-	State,
-
-	selections,
-	tooltip,
-	dataProcessor,
-	defs
-) {
-*/
 /* global d3, Touche */
 import $ from "jquery";
 //import qvangular from "qvangular";
@@ -949,7 +914,7 @@ function _update( source ) {
 		while ( textLength > width && text.length > 0 ) {
 			text = text.slice( 0, -1 );
 			that.text( text + "…" );
-			textLength = self.node().getComputedTextLength();
+			textLength = that.node().getComputedTextLength();
 		}
 	};
 
