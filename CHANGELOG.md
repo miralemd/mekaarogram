@@ -1,4 +1,7 @@
 # Changelog
+## 0.6.7
+* [Fix] Error when ellipsing text node
+
 ## 0.6.6
 * Switch to es6 modules and webpack for building
 * [Fix] Build path to Sense folder is wrong on OSX
