@@ -1,6 +1,6 @@
 {
   "name": "dendrogram",
-  "version": "0.6.6",
+  "version": "0.6.7",
   "description": "",
   "main": "src/mek-dendogram.js",
   "scripts": {
