@@ -1130,7 +1130,7 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 
 		if ( !globals.svgDefs ) {
 			let doc = new DOMParser().parseFromString( defs, "application/xml" );
-			if ( doc.documentElement.nodeName !== "parsererror" ) {
+			if ( doc.documentElement.querySelectorAll( "parsererror" ).length === 0 ) {
 				globals.svgDefs = document.importNode( doc.documentElement, true );
 				globals.svgDefs.style.position = "absolute";
 				globals.svgDefs.style.opacity = "0";

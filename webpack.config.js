@@ -64,7 +64,7 @@ var config = {
           },
           {
             test: /\.html$/,
-            loader: "html-loader"
+            loader: "svg-inline"
           }]
        	},
        	externals: [
