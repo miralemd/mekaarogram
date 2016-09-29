@@ -50,26 +50,25 @@ $font-light: #fff;
     font-family: "QlikView Sans", sans-serif;
     dominant-baseline: central;
     text-anchor: middle;
-    fill: $font-dark; 
+    fill: $font-dark;
     font-size: 1px;
     transition-property: font-size, fill;
     transition-duration: 0.4s;
     transition-timing-function: ease;
-    
+
     &.entering {
       fill: rgba(255, 255, 255, 0);
     }
   }
-  
+
   .symbol-text--light {
     fill: $font-light;
   }
 
   .symbol-q {
-    font-family: "QlikView Icons";
-    dominant-baseline: middle;
+    font-family: "LUI Icons";
   }
-  
+
   .symbol-m {
     font-family: 'Mek Material Icons';
     font-weight: normal;
@@ -97,7 +96,7 @@ $font-light: #fff;
     /* Support for IE. */
     font-feature-settings: 'liga';
   }
-  
+
 
   .node.node-expandable {
     font-weight: bold;
@@ -109,13 +108,13 @@ $font-light: #fff;
     stroke-width: 0;
     opacity: 1.0;
   }
-  
+
   .node use {
     pointer-events: none;
     touch-action: none;
     ms-touch-action: none;
   }
-  
+
 
   .node.node-selectable {
     cursor: pointer;

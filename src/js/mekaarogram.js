@@ -992,13 +992,13 @@ function _update( source ) {
 
 			// update
 			let fontSize = sizeFn( d );
-			if ( Color.isDark( d.color ) ) {
+			if ( new Color( d.color ).isDark() ) {
 				classes += " symbol-text--light";
 			}
 			t = d3.select( this ).select( ".symbol-text" )
 				.text( symbol )
 				.attr( "class", classes )
-				.style( "font-size", fontSize * 1.2 + "px" );
+				.style( "font-size", fontSize * 1.0 + "px" );
 
 			if ( isIE ) {
 				t.attr( "dy", /symbol\-m/.exec( classes ) ? ".50em" : "0.30em" ); // IE does not support css property dominant-baseline which vertically centers the text, so we need to shift it manually
