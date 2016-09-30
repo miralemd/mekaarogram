@@ -30,15 +30,19 @@ export default {
 		url: "#wink",
 		color: "#FFEB3B"
 	}/*,
-	":)_" : {
-		type: "svg",
-		url: "#smile-female",
-		color: "#FFEB3B"
-	},
-	":)" : {
+	"::)": {
 		type: "svg",
 		url: "#smile-female",
 		color: "#8BC34A"
 	},
-	*/
+	"::o": {
+		type: "svg",
+		url: "#surprised-female",
+		color: "#FFEB3B"
+	},
+	"::(": {
+		type: "svg",
+		url: "#sad-female",
+		color: "#FFEB3B"
+	}*/
 };
