@@ -3,6 +3,7 @@
 ## 0.6.8
 
 ### Fixes
+
 * Emojis do not work in new version of Chrome
 * Qlikview icon font is not working
 * SVG defs injection injects html root node containing parser error
@@ -10,6 +11,7 @@
 ## 0.6.7
 
 ### Fixes
+
 * Error when ellipsing text node
 
 ## 0.6.6
@@ -17,6 +19,7 @@
 * Switch to es6 modules and webpack for building
 
 ### Fixes
+
 * Build path to Sense folder is wrong on OSX
 * requirejs text! prefix isn't working cross-site with current client config
 
@@ -29,6 +32,7 @@
 ## 0.6.4
 
 ### General
+
 * Change initial fetch to 10k rows
 
 ### Fixes
