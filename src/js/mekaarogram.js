@@ -941,7 +941,7 @@ function _update( source ) {
 			.each( wrap )
 			.attr( "text-anchor", labelAlignment )
 			.attr( "transform", labelPosition )
-			.style( "fill-opacity", 1 );
+			.style( "fill-opacity", 1.0 );
 	};
 
 	let checkSymbolNode = function ( d ) {
@@ -961,11 +961,11 @@ function _update( source ) {
 			if ( !t ) { // enter
 				d3.select( this ).append( "use" )
 					.attr( "class", "symbol symbol-svg" )
-					.attr( "xlink:href", d.symbol )
+					.attr( "xlink:href", location.href + d.symbol )
 					.attr( "transform", "scale(0.001, 0.001) translate(-370, -540)" );
 			}
 			else {
-				t.setAttribute( "href", d.symbol );
+				t.setAttribute( "href", location.href + d.symbol );
 			}
 		}
 		else { // text, icon
