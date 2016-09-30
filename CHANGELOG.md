@@ -1,44 +1,68 @@
 # Changelog
+
+## 0.6.8
+
+### Fixes
+* Emojis do not work in new version of Chrome
+* Qlikview icon font is not working
+* SVG defs injection injects html root node containing parser error
+
 ## 0.6.7
-* [Fix] Error when ellipsing text node
+
+### Fixes
+* Error when ellipsing text node
 
 ## 0.6.6
+
 * Switch to es6 modules and webpack for building
-* [Fix] Build path to Sense folder is wrong on OSX
-* [Fix] requirejs text! prefix isn't working cross-site with current client config
+
+### Fixes
+* Build path to Sense folder is wrong on OSX
+* requirejs text! prefix isn't working cross-site with current client config
 
 ## 0.6.5
+
+### Fixes
+
 * Update container element to work in Sense 3.0
 
 ## 0.6.4
+
 ### General
 * Change initial fetch to 10k rows
 
 ### Fixes
+
 * Extension error in mashup environment due to missing pivot-sorting module
 * Nodes being shown as collapsable even when not having any children
 * Old null nodes of type `A` are not shown
 
 ## 0.6.2
+
 * Added show null nodes option
 * Added split totals functionality
 
 ## 0.6.0
+
 * Added emojis wink, surprised and cheeky
 * Wider support for character symbols
 
 ### Fixes
+
 * Selection toolbar gets stuck when `qSuccess` on selection is false
 * [IE] Selecting nodes does not work when emoji is visible
 
 ## 0.5.0
+
 ### General
+
 * Moved files into better structure
 * Rewritten and much improved labeling algorithms due to too many issues with text
 * Preview image for extension
 * More gulp tasks
 
 ### Features
+
 * Linked selection model
 * Node size controller
 * Keyboard accelerators for confirm/cancel selections
@@ -47,6 +71,7 @@
 * Enable snapshots
 
 ### Fixes
+
 * Cannot confirm/clear selections if cleared already once
 * Label for last level not visible when last level is not last dimension level
 * Scope css style to extension to avoid overwriting(or getting overwritten by) other extensions
