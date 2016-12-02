@@ -22,6 +22,7 @@ let duration = 500;
 let namespace = ".mekDendrogram";
 let PADDING = 4;
 let defaultColor = "rgb(100, 150, 150)";
+let MAX_NODES_FOR_ENABLED_ANIMATION = 100;
 
 let globals = {
 	instances: 0,
@@ -752,6 +753,10 @@ function _update( source ) {
 	let labelAlignment = values.nameLabeling.align;
 	let tree = values.tree;
 
+	let numNodes = Math.max( nodes.length, this._prevNumNodes || 0 );
+
+	this.duration = numNodes > MAX_NODES_FOR_ENABLED_ANIMATION ? 0 : duration; // turn off animation if too many nodes
+	this._prevNumNodes = nodes.length;
 
 	let minLabelSpace = Math.min.apply( null, levels.map( function( level ) {
 		return level.minLabelDistance;
@@ -825,9 +830,11 @@ function _update( source ) {
 	//	.each(wrap)
 	//.style("fill-opacity", 1e-6);
 
-	let nodeUpdate = node.transition()
-		.duration( duration )
-		.attr( "transform", transformFn );
+	let nodeUpdate = node;
+	if ( self.duration ) {
+		nodeUpdate = nodeUpdate.transition().duration( self.duration );
+	}
+	nodeUpdate = nodeUpdate.attr( "transform", transformFn );
 	//.style( 'stroke-width', function ( d ) {
 	//	return Math.sqrt( d.size ) / 150;
 	//} );
@@ -1017,10 +1024,13 @@ function _update( source ) {
 			return ( d._isSvgSymbol ? "scale(" + scale + "," + scale + ")" : "" ) + ( isRadial ? "rotate(" + ( -d.x + 90 ) + ")" : "" );
 		} );
 
-	let nodeExit = node.exit().transition()
-		.duration( duration )
-		.attr( "transform", exitingTransform )
-		.remove();
+	let nodeExit = node.exit();
+	if ( self.duration ) {
+		nodeExit = nodeExit.transition()
+			.duration( self.duration )
+			.attr( "transform", exitingTransform );
+	}
+	nodeExit = nodeExit.remove();
 
 	nodeExit.select( "circle" )
 		.attr( "r", 1e-6 );
@@ -1037,23 +1047,27 @@ function _update( source ) {
 		} );
 
 	// Enter any new links at the parent's previous position.
-	link.enter().insert( "path", "g" )
+	let linkEnter = link.enter().insert( "path", "g" )
 		.attr( "class", "link" )
 		.attr( "d", function () {
 			let o = { x: source._x, y: source._y };
 			return diagonal( { source: o, target: o } );
 		} )
 		//.style("stroke", colorFn )
-		.style( "stroke-width", 1e-6 )
-		.transition()
-		.duration( duration )
-		.attr( "d", diagonal );
+		.style( "stroke-width", 1e-6 );
+	if ( self.duration ) {
+		linkEnter = linkEnter.transition()
+			.duration( self.duration );
+	}
+	linkEnter.attr( "d", diagonal );
 
 	// Transition links to their new position.
-	let linkUpdate = link.style( "stroke-width", sizeFn )
-		.transition()
-		.duration( duration )
-		.attr( "d", diagonal );
+	let linkUpdate = link.style( "stroke-width", sizeFn );
+	if ( self.duration ) {
+		linkUpdate = linkUpdate.transition()
+			.duration( self.duration );
+	}
+	linkUpdate = linkUpdate.attr( "d", diagonal );
 
 	linkUpdate.attr( "class", function( d ) {
 		let s = "link",
@@ -1065,13 +1079,16 @@ function _update( source ) {
 	} );
 
 	// Transition exiting nodes to the parent's new position.
-	link.exit().transition()
-		.duration( duration )
-		.attr( "d", function () {
-			let o = { x: source.x, y: source.y };
-			return diagonal( { source: o, target: o } );
-		} )
-		.remove();
+	let linkExit = link.exit();
+	if ( self.duration ) {
+		linkExit = linkExit.transition()
+			.duration( self.duration )
+			.attr( "d", function () {
+				let o = { x: source.x, y: source.y };
+				return diagonal( { source: o, target: o } );
+			} );
+	}
+	linkExit.remove();
 
 	nodes.forEach( function ( n ) {
 		n._x = n.x;
@@ -1181,7 +1198,7 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 			.attr( "height", h )
 			.select( ".root" )
 			.transition()
-			.duration( duration )
+			.duration( this.duration )
 			.attr( "transform", rootTransform );
 	},
 	on: function () {
@@ -1326,7 +1343,7 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 			.attr( "height", h )
 			.select( ".root" )
 			.transition()
-			.duration( duration )
+			.duration( this.duration )
 			.attr( "transform", rootTransform );
 	},
 	togglePathSelect: function() {
