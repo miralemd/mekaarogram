@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.6.9
+
+### Fixes
+
+* Null nodes are always visible; caused by refactoring work in [v0.6.6](0.6.6)
+* Disable transitions when number of nodes exceed 100
+
 ## 0.6.8
 
 ### Fixes
