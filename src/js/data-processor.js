@@ -49,7 +49,7 @@ function processData( layout ) {
 				if ( nn.type === "U" || nn.type === "A" ) {
 					ret.selfNode = nn;
 				}
-				return hideNullNodes ? ( n.type !== "A" && n.type !== "U" ) : true;
+				return hideNullNodes ? ( nn.type !== "A" && nn.type !== "U" ) : true;
 			} );
 			ret.canCollapse = ret.canCollapse && ret.children.length; // can't collapse if there are no children
 		}
