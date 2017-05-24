@@ -17,6 +17,9 @@ function clearSelections ( endSelections, endHighlight ) {
 function selectCells( cells ) {
 	switch ( this.model.layout.qHyperCube.qMode ) {
 		case "P":
+			if ( typeof this.model.selectPivotCells === "function" ) {
+				return this.model.selectPivotCells( this.path, cells );
+			}
 			return this.model.rpc( "SelectPivotCells", null, [this.path, cells] );
 		default:
 			throw "you are using a non-supported backend-api";
@@ -70,7 +73,7 @@ export default {
 			}
 			if ( cells ) {
 				selectCells.call( obj.backendApi, cells ).then( function( res ) {
-					if ( !res.qSuccess ) {
+					if ( typeof res === "boolean" && !res || typeof res === "object" && !res.qSuccess ) {
 						obj.$scope.selectionsApi.clear();
 					}
 				} );
