@@ -982,7 +982,7 @@ function _update( source ) {
 			let match;
 			let classes = "symbol symbol-text";
 
-			if ( ( match = /^q-([0-9]{2,3})$/.exec( symbol ) ) ) { // qlik icon
+			if ( ( match = /^q-([0-9]{2,4})$/.exec( symbol ) ) ) { // qlik icon
 				symbol = String.fromCharCode( match[1] );
 				classes += " symbol-q";
 			}

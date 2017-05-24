@@ -88,7 +88,7 @@ function processData( layout ) {
 				else if ( /^\S{1}$/.exec( symbol ) ) { // text
 					n.symbol = symbol;
 				}
-				else if ( /^q-[0-9]{2,3}$/.exec( symbol ) ) { // qlik icon
+				else if ( /^q-[0-9]{2,4}$/.exec( symbol ) ) { // qlik icon
 					n.symbol = symbol;
 				}
 				else if ( /^m-[_a-z0-9]+$/.exec( symbol ) ) { // material icon
