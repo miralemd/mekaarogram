@@ -26,8 +26,22 @@ export default {
 			}
 		},
 		sorting: {
-			uses: "sorting",
-			component: "pivot-sorting"
+			type: "items",
+			translation: "properties.sorting",
+			items: {
+				defaultSorting: {
+					uses: "sorting",
+					items: {
+						dimensions: {
+							showPriority: false,
+							allowMove: false
+						},
+						measures: {
+							included: false
+						}
+					}
+				}
+			}
 		},
 		settings: {
 			uses: "settings",
