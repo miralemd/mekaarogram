@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.6.10
+
+### Fixes
+
+* Error thrown when trying to select
+* pivot-sorting module is broken
+* Include `.wbl` file in build
+* lui-icons ASCII range
+
 ## 0.6.9
 
 ### Fixes
