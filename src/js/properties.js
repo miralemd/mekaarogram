@@ -43,6 +43,22 @@ export default {
 				}
 			}
 		},
+		addons: {
+			type: "items",
+			component: "expandable-items",
+			translation: "properties.addons",
+			items: {
+				dataHandling: {
+					uses: "dataHandling",
+					items: {
+						suppressZero: null,
+						calcCond: {
+							uses: "calcCond"
+						}
+					}
+				}
+			}
+		},
 		settings: {
 			uses: "settings",
 			items: {
