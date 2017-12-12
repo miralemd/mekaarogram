@@ -14,15 +14,11 @@ An extension used to display hierarchical structures from multiple dimensions.
 The dimensions controls the way the tree is built.
 Works in the same way as a pivot table with all dimensions under the row section.
 
-##### Measures
-
-The values of the measure controls the size of each bubble.
-
 ###### Color
 
 Sets the color of each bubble.
 
-###### Symbol
+###### Emoticon
 
 Sets a symbol to show inside each bubble.
 
@@ -43,6 +39,19 @@ A small set of emojis: `':)'`, `':|'`, `':('`, `':p'`, `':o'`, `';)'`
 Icons from the LUI icons set, prefix with `q-` followed by the ascii number representing the icon: `'q-33'`, `'q-239'` ...
 
 ![Qlik-bar](docs/assets/q_33.PNG) ![Qlik-favorite](docs/assets/q_239.PNG)
+
+
+##### Measures
+
+The values of the measure controls the size of each bubble.
+
+###### Color
+
+Same as for _Dimension_. The expression on the dimensions takes precedence.
+
+###### Emoticon
+
+Same as for _Dimension_. The expression on the dimensions takes precedence.
 
 #### Appearance
 
