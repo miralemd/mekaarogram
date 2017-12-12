@@ -31,6 +31,7 @@ function processData( layout ) {
 			name: n.qType === "O" ? layout.qHyperCube.qDimensionInfo[depth].othersLabel : n.qText,
 			elemNo: n.qElemNo,
 			values: values,
+			attrExps: n.qAttrExps,
 			row: row++,
 			type: n.qType,
 			col: depth,
@@ -72,6 +73,45 @@ function processData( layout ) {
 		size: 1
 	};
 
+	function hasSymbolExps( d ) {
+		return d && d.qValues && d.qValues[1] && typeof d.qValues[1].qText !== "undefined" && d.qValues[1].qText !== "-";
+	}
+
+	function hasColorExps( d ) {
+		return d && d.qValues && d.qValues[0] && ( d.qValues[0].qNum !== "NaN" || ( d.qValues[0].qText && d.qValues[0].qText !== "-" ) );
+	}
+
+	function applyColor( n, d ) {
+		let colorArg = d.qValues[0].qNum !== "NaN" ? d.qValues[0].qNum : d.qValues[0].qText;
+		let color = new Color( colorArg, "argb" );
+		if ( !color.isInvalid() ) {
+			n.color = color.toRGB();
+		}
+		else {
+			delete n.color;
+		}
+	}
+
+	function applySymbol( n, d ) {
+		let symbol = d.qValues[1].qText;
+		if ( symbol && symbols[symbol] ) {
+			n.symbol = symbols[symbol].url;
+		}
+		else if ( /^\S{1}$/.exec( symbol ) ) { // text
+			n.symbol = symbol;
+		}
+		else if ( /^q-[0-9]{2,4}$/.exec( symbol ) ) { // qlik icon
+			n.symbol = symbol;
+		}
+		else if ( /^m-[_a-z0-9]+$/.exec( symbol ) ) { // material icon
+			n.symbol = symbol;
+		}
+		else {
+			delete n.symbol;
+		}
+		return symbol;
+	}
+
 	function mapValuesToProperties( n ) {
 		let values = layout.selfNodes && n.selfNode ? n.selfNode.values : n.values,
 			symbol;
@@ -80,41 +120,20 @@ function processData( layout ) {
 			n.size = isNaN( values[0].qNum ) ? 1 : values[0].qNum;
 
 			//symbol
-			if ( values[0].qAttrExps && values[0].qAttrExps.qValues && values[0].qAttrExps.qValues[1] ) {
-				symbol = values[0].qAttrExps.qValues[1].qText;
-				if ( symbol && symbols[symbol] ) {
-					n.symbol = symbols[symbol].url;
-				}
-				else if ( /^\S{1}$/.exec( symbol ) ) { // text
-					n.symbol = symbol;
-				}
-				else if ( /^q-[0-9]{2,4}$/.exec( symbol ) ) { // qlik icon
-					n.symbol = symbol;
-				}
-				else if ( /^m-[_a-z0-9]+$/.exec( symbol ) ) { // material icon
-					n.symbol = symbol;
-				}
-				else {
-					delete n.symbol;
-				}
-			}
-			else {
+			if ( hasSymbolExps( n.attrExps ) ) {
+				symbol = applySymbol( n, n.attrExps );
+			} else if ( hasSymbolExps( values[0].qAttrExps ) ) {
+				symbol = applySymbol( n, values[0].qAttrExps );
+			} else {
 				delete n.symbol;
 			}
 
 			//color
-			if ( values[0].qAttrExps && values[0].qAttrExps.qValues && values[0].qAttrExps.qValues[0] &&
-				( values[0].qAttrExps.qValues[0].qNum !== "NaN" || values[0].qAttrExps.qValues[0].qText ) ) {
-				let colorArg = values[0].qAttrExps.qValues[0].qNum !== "NaN" ? values[0].qAttrExps.qValues[0].qNum : values[0].qAttrExps.qValues[0].qText;
-				let color = new Color( colorArg, "argb" );
-				if ( !color.isInvalid() ) {
-					n.color = color.toRGB();
-				}
-				else {
-					delete n.color;
-				}
-			}
-			else if ( n.symbol && symbols[symbol] && symbols[symbol].color ) {
+			if ( hasColorExps( n.attrExps ) ) {
+				applyColor( n, n.attrExps );
+			} else if ( hasColorExps( values[0].qAttrExps ) ) {
+				applyColor( n, values[0].qAttrExps );
+			} else if ( n.symbol && symbols[symbol] && symbols[symbol].color ) {
 				n.color = new Color( symbols[symbol].color );
 			}
 			else {

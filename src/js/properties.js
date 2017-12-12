@@ -5,6 +5,24 @@ export default {
 		data: {
 			uses: "data",
 			items: {
+				dimensions: {
+					items: {
+						colorExpression: {
+							component: "expression",
+							expressionType: "measure",
+							ref: "qAttributeExpressions.0.qExpression",
+							label: "Node color",
+							defaultValue: ""
+						},
+						smileyExpression: {
+							component: "expression",
+							expressionType: "measure",
+							ref: "qAttributeExpressions.1.qExpression",
+							label: "Emoticon",
+							defaultValue: ""
+						}
+					}
+				},
 				measures: {
 					items: {
 						colorExpression: {
