@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.7.0
+
+### Added
+
+* Calculation condition as option
+* Color and emotion expressions on dimensions
+
 ## 0.6.10
 
 ### Fixes
