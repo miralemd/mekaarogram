@@ -69,10 +69,10 @@ export default {
 				dataHandling: {
 					uses: "dataHandling",
 					items: {
-						suppressZero: null,
-						calcCond: {
+						suppressZero: null
+						/* calcCond: {
 							uses: "calcCond"
-						}
+						} */
 					}
 				}
 			}
