@@ -74,18 +74,17 @@ var config = {
 		}]
 	},
 	externals: [{
-		"default-view": "objects.extension/default-view",
+		// "default-view": "objects.extension/default-view",
+		// "object-conversion": "objects.extension/object-conversion",
+		// "pivot-api": "objects.backend-api/pivot-api",
+
 		"translator": "translator",
-		"object-conversion": "objects.extension/object-conversion",
 		"components": "client.property-panel/components/components",
-		"pivot-api": "objects.backend-api/pivot-api",
 		"require": "require",
 		"qvangular": "qvangular",
 		"jquery": "jquery",
 		"color": "general.utils/color",
-		"default-view": "objects.extension/default-view",
 		"selection-toolbar": "objects.extension/default-selection-toolbar",
-		"event-utils": "objects.utils/event-utils",
 		"state": "client.utils/state",
 		"tooltip-service": "objects.views/charts/tooltip/chart-tooltip-service",
 		"touche": "touche",

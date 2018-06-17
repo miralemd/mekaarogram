@@ -1,10 +1,6 @@
 /* global d3, Touche */
 import $ from "jquery";
-//import qvangular from "qvangular";
 import Color from "color";
-import DefaultView from "default-view";
-import DefaultSelectionToolbar from "selection-toolbar";
-//import EventUtils from "event-utils";
 import State from "state";
 
 import selections from "./selection";
@@ -1134,9 +1130,18 @@ function onLocationChange() {
 	}
 }
 
-let Dendrogram = DefaultView.extend( "Dendrogram", {
-	init: function () {
-		this._super.apply( this, arguments );
+class Dendrogram {
+	constructor ( $scope, $element, options, backendApi, ext ) {
+		this.$scope = $scope;
+		this.$element = $element;
+		this.options = options;
+		this.backendApi = backendApi;
+		this.ext = ext;
+		this.init();
+	}
+
+	init() {
+		// this._super.apply( this, arguments );
 
 		globals.instances++;
 
@@ -1180,8 +1185,8 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 			active: false
 		};
 
-	},
-	resize: function () {
+	}
+	resize() {
 		_updateSize.call( this );
 
 		let w = this._w;
@@ -1200,9 +1205,9 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 			.transition()
 			.duration( this.duration )
 			.attr( "transform", rootTransform );
-	},
-	on: function () {
-		this._super();
+	}
+	on() {
+		// this._super();
 
 		this.$element.on( "mousewheel DOMMouseScroll", function ( e ) {
 			e = e.originalEvent;
@@ -1238,7 +1243,7 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 				return;
 			}
 
-			if ( !self.selectionsEnabled ) {
+			if ( !self.ext.selectionsEnabled ) {
 				return;
 			}
 
@@ -1258,7 +1263,7 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 				}
 				dataPoint = d3.select( data.relatedTarget ).data();
 			},
-			update: function () {
+			update() {
 				Touche.preventGestures( this.gestureHandler );
 			},
 			end: function ( e, data ) {
@@ -1295,15 +1300,15 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 					}
 				}
 			} );
-	},
-	off: function () {
+	}
+	off() {
 		clearTimeout( this._rotationTimer );
-		this._super();
+		// this._super();
 		this.$element.off( "mousewheel DOMMouseScroll" );
 		$( document ).off( "keyup" + namespace );
 		Touche( this.$element[0] ).off( "*", namespace ); // eslint-disable-line new-cap
-	},
-	paint: function ( $element, layout ) {
+	}
+	paint( layout ) {
 
 		this.dataSelections.highlight = false;
 		this.dataSelections.col = -1;
@@ -1345,45 +1350,101 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 			.transition()
 			.duration( this.duration )
 			.attr( "transform", rootTransform );
-	},
-	togglePathSelect: function() {
+	}
+	togglePathSelect() {
 		this._isPathSelectActive = !this._isPathSelectActive;
 		if ( this.dataSelections.highlight ) {
 			selections.switchSelectionModel.call( this, this._isPathSelectActive );
 			//selections.select.call( this );
 		}
 		_update.call( this, this._data.root );
-	},
-	isPathSelectionActive: function() {
+	}
+	isPathSelectionActive() {
 		return this._isPathSelectActive;
-	},
-	isPathSelectionDisabled: function() {
+	}
+	isPathSelectionDisabled() {
 		return this._layout && this._layout.qHyperCube.qDimensionInfo.length < 2;
-	},
-	getSelectionToolbar: function () {
-		let view = this;
-		return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [{
-			  name: "",
-			  isIcon: true,
-			  buttonClass: "sel-toolbar-icon-toggle",
-			  iconClass: "icon-link",
-			  action: function () {
-				  view.togglePathSelect();
-			  },
-			  isActive: function () {
-				  let active = view.isPathSelectionActive();
-				  this.name = active ? "mek.turnOffPathSelect" : "mek.turnOnPathSelect";
-				  return active;
-			  },
-			  isDisabled: function () {
-				  return view.isPathSelectionDisabled();
-			  }
-		  }], [] );
-	},
-	selectValues: function ( cells, clearOld ) {
-		selections.selectValues( this, cells, clearOld );
-	},
-	destroy: function() {
+	}
+	clearSelections( endSelections, endHighlight ) {
+		this._selectedElemNo = {};
+		this._pathSelected = {};
+		this._selectedCells = {};
+
+		if ( endSelections || endHighlight ) {
+			this.dataSelections.highlight = false;
+			this._root.attr( "class", "root" );
+		}
+		if ( endSelections ) {
+			this.dataSelections.active = false;
+		}
+	}
+	selectValues( cells, clearOld ) {
+		if ( !this.ext.selectionsEnabled ) {
+			return;
+		}
+		if ( !this.dataSelections.active ) {
+			let $scope = this.$scope;
+			//map functions for toolbar
+			$scope.selectionsApi.confirm = () => {
+				this.clearSelections( true );
+				$scope.backendApi.endSelections( true ).then( function () {
+					$scope.selectionsApi.deactivated();
+				} );
+			};
+			$scope.selectionsApi.cancel = () => {
+				this.clearSelections( true );
+				$scope.backendApi.endSelections( false );
+				$scope.selectionsApi.deactivated();
+			};
+			$scope.selectionsApi.deactivate = () => {
+				this.clearSelections( true );
+				this.deactivated();
+			};
+			$scope.selectionsApi.clear = () => {
+				this.clearSelections( false, true );
+				$scope.backendApi.clearSelections();
+				$scope.selectionsApi.selectionsMade = false;
+				this.resize();
+			};
+
+			//start selection mode
+			this.backendApi.beginSelections();
+			$scope.selectionsApi.activated();
+			$scope.selectionsApi.selectionsMade = true;
+			this.dataSelections.active = true;
+		}
+
+		if ( !cells.length ) {
+			//obj.backendApi.clearSelections();
+			this.$scope.selectionsApi.clear();
+		}
+		else {
+			if ( clearOld ) {
+				this.backendApi.clearSelections();
+			}
+			if ( cells ) {
+				this.selectCells( cells ).then( function( res ) {
+					if ( typeof res === "boolean" && !res || typeof res === "object" && !res.qSuccess ) {
+						this.$scope.selectionsApi.clear();
+					}
+				} );
+			}
+			this.$scope.selectionsApi.selectionsMade = true;
+		}
+	}
+	selectCells( cells ) {
+		const b = this.backendApi;
+		switch ( b.model.layout.qHyperCube.qMode ) {
+			case "P":
+				if ( typeof b.model.selectPivotCells === "function" ) {
+					return b.model.selectPivotCells( b.path, cells );
+				}
+				return b.model.rpc( "SelectPivotCells", null, [b.path, cells] );
+			default:
+				throw "you are using a non-supported backend-api";
+		}
+	}
+	destroy() {
 		globals.instances--;
 
 		if ( globals.instances <= 0 && globals.svgDefs && globals.svgDefs.parentNode ){
@@ -1391,7 +1452,6 @@ let Dendrogram = DefaultView.extend( "Dendrogram", {
 			State.StateChanged.unbind( onLocationChange );
 		}
 	}
-} );
-
+}
 
 export default Dendrogram;

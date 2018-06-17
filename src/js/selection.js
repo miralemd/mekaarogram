@@ -1,86 +1,4 @@
-import EventUtils from "event-utils";
-
-function clearSelections ( endSelections, endHighlight ) {
-	this._selectedElemNo = {};
-	this._pathSelected = {};
-	this._selectedCells = {};
-
-	if ( endSelections || endHighlight ) {
-		this.dataSelections.highlight = false;
-		this._root.attr( "class", "root" );
-	}
-	if ( endSelections ) {
-		this.dataSelections.active = false;
-	}
-}
-
-function selectCells( cells ) {
-	switch ( this.model.layout.qHyperCube.qMode ) {
-		case "P":
-			if ( typeof this.model.selectPivotCells === "function" ) {
-				return this.model.selectPivotCells( this.path, cells );
-			}
-			return this.model.rpc( "SelectPivotCells", null, [this.path, cells] );
-		default:
-			throw "you are using a non-supported backend-api";
-	}
-}
-
 export default {
-	selectValues: function ( obj, cells, clearOld ) {
-		if ( !obj.selectionsEnabled ) {
-			return;
-		}
-		if ( !obj.dataSelections.active ) {
-			let $scope = obj.$scope;
-			//map functions for toolbar
-			$scope.selectionsApi.confirm = function () {
-				clearSelections.call( obj, true );
-				$scope.backendApi.endSelections( true ).then( function () {
-					$scope.selectionsApi.deactivated();
-				} );
-			};
-			$scope.selectionsApi.cancel = function () {
-				clearSelections.call( obj, true );
-				$scope.backendApi.endSelections( false );
-				$scope.selectionsApi.deactivated();
-			};
-			$scope.selectionsApi.deactivate = function () {
-				clearSelections.call( obj, true );
-				obj.deactivated();
-			};
-			$scope.selectionsApi.clear = function () {
-				clearSelections.call( obj, false, true );
-				$scope.backendApi.clearSelections();
-				$scope.selectionsApi.selectionsMade = false;
-				obj.resize();
-			};
-
-			//start selection mode
-			obj.backendApi.beginSelections();
-			$scope.selectionsApi.activated();
-			$scope.selectionsApi.selectionsMade = true;
-			obj.dataSelections.active = true;
-		}
-
-		if ( !cells.length ) {
-			//obj.backendApi.clearSelections();
-			obj.$scope.selectionsApi.clear();
-		}
-		else {
-			if ( clearOld ) {
-				obj.backendApi.clearSelections();
-			}
-			if ( cells ) {
-				selectCells.call( obj.backendApi, cells ).then( function( res ) {
-					if ( typeof res === "boolean" && !res || typeof res === "object" && !res.qSuccess ) {
-						obj.$scope.selectionsApi.clear();
-					}
-				} );
-			}
-			obj.$scope.selectionsApi.selectionsMade = true;
-		}
-	},
 	select: function select ( node ) {
 		if ( node ) {
 			if ( node.elemNo < 0 && node.elemNo !== -3 ) {
@@ -88,7 +6,7 @@ export default {
 			}
 
 			if ( node.isLocked ) {
-				EventUtils.showLockedFeedback( [this._layout.qHyperCube.qDimensionInfo[node.col]] );
+				// EventUtils.showLockedFeedback( [this._layout.qHyperCube.qDimensionInfo[node.col]] );
 				return;
 			}
 
