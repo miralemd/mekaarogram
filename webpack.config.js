@@ -75,18 +75,18 @@ var config = {
 	},
 	externals: [{
 		// "default-view": "objects.extension/default-view",
-		// "object-conversion": "objects.extension/object-conversion",
 		// "pivot-api": "objects.backend-api/pivot-api",
-
+		// "selection-toolbar": "objects.extension/default-selection-toolbar",
+		// "tooltip-service": "objects.views/charts/tooltip/chart-tooltip-service",
+		
+		// "object-conversion": "objects.extension/object-conversion",
 		"translator": "translator",
 		"components": "client.property-panel/components/components",
 		"require": "require",
 		"qvangular": "qvangular",
 		"jquery": "jquery",
 		"color": "general.utils/color",
-		"selection-toolbar": "objects.extension/default-selection-toolbar",
 		"state": "client.utils/state",
-		"tooltip-service": "objects.views/charts/tooltip/chart-tooltip-service",
 		"touche": "touche",
 		"d3": "./external/d3"
 	}],

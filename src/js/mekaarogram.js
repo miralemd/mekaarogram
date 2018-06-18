@@ -9,7 +9,6 @@ import dataProcessor from "./data-processor";
 
 import "d3";
 
-import "tooltip-service"; // registers qvChartTooltipService used in tooltip.js
 import "touche"; // ensure Touche is imported and avaliable as global
 
 import defs from "../assets/defs.html";

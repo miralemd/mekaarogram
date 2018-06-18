@@ -1,8 +1,5 @@
 import $ from "jquery";
 import translator from "translator";
-import DefaultSelectionToolbar from "selection-toolbar";
-// import objectConversion from "object-conversion";
-// import PivotApi from "pivot-api";
 
 import Dendrogram from "./js/mekaarogram";
 import properties from "./js/properties";
@@ -79,40 +76,29 @@ export default {
 	selectValues( cells, clearOld ) {
 		this.dendo.selectValues( this.dendo, cells, clearOld );
 	},
-	getSelectionToolbar() {
-		let view = this.dendo;
-		return new DefaultSelectionToolbar( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [{
-			  name: "",
-			  isIcon: true,
-			  buttonClass: "sel-toolbar-icon-toggle",
-			  iconClass: "icon-link",
-			  action: function () {
-				  view.togglePathSelect();
-			  },
-			  isActive: function () {
-				  let active = view.isPathSelectionActive();
-				  this.name = active ? "mek.turnOffPathSelect" : "mek.turnOnPathSelect";
-				  return active;
-			  },
-			  isDisabled: function () {
-				  return view.isPathSelectionDisabled();
-			  }
-		  }], [] );
-	}
-	// on() {
-	// 	console.log('on');
-	// },
-	// off() {
-	// 	console.log('off');
-	// }
-	// View: Dendrogram,
-	// BackendApi: PivotApi,
-	// importProperties: function ( exportedFmt, initialProperties, definition ) {
-	// 	let propTree = objectConversion.hypercube.importProperties( exportedFmt, initialProperties, definition ),
-	// 		props = propTree.qProperty;
-
-	// 	props.qHyperCubeDef.qShowTotalsAbove = true;
-	// 	props.qHyperCubeDef.qNoOfLeftDims = -1;
-	// 	return propTree;
-	// }
+	controller: [function() {
+		return {
+			getSelectionToolbar() {
+				const Ctr = this.view.getSelectionToolbar().constructor;
+				const view = this.view.dendo;
+				return new Ctr( this.$scope.backendApi, this.$scope.selectionsApi, false, false, [{
+						name: "",
+						isIcon: true,
+						buttonClass: "sel-toolbar-icon-toggle",
+						iconClass: "icon-link",
+						action: function () {
+							view.togglePathSelect();
+						},
+						isActive: function () {
+							let active = view.isPathSelectionActive();
+							this.name = active ? "mek.turnOffPathSelect" : "mek.turnOnPathSelect";
+							return active;
+						},
+						isDisabled: function () {
+							return view.isPathSelectionDisabled();
+						}
+					}], [] );
+			}
+		};
+	}],
 };
