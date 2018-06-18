@@ -2,7 +2,7 @@
 	"name" : "Mekaarogram",
 	"description" : "Display a hierarchy in the most amazing way ever!",
 	"type" : "visualization",
-	"version": "0.7.0",
+	"version": "0.7.1",
 	"author": "Miralem Drek",
 	"preview": "assets/mekaarogram.png"
 }
