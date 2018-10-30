@@ -3,12 +3,14 @@
 
 var path = require( "path" );
 var os = require( "os" );
+var fs = require( "fs" );
 var cpy = require( "cpy" );
 var watch = require( "watch" );
 var yargs = require( "yargs" );
+var pkg = require( "./package.json" );
 var WebPackOnBuild = require( "on-build-webpack" );
 
-var name = "mekaarogram";
+var name = pkg.name;
 var qname = name;
 var qnamejs = qname + ".js";
 var srcDir = path.resolve( __dirname, "src" );
@@ -22,6 +24,19 @@ if( os.platform() === "win32" ) {
 var qdir = path.resolve.apply( path, qdirpath );
 
 var isWatching = yargs.argv.watch;
+
+if (!fs.existsSync(output)) {
+	fs.mkdirSync(output);
+}
+fs.writeFileSync(path.resolve(output, `${qname}.qext`), JSON.stringify({
+	name: "Mekaarogram",
+	description: pkg.description,
+	author: pkg.author,
+	type: 'visualization',
+	version: pkg.version,
+	preview: "assets/mekaarogram.png",
+	homepage: pkg.homepage
+}, null, 2));
 
 function onBuild() {
 	cpy( [

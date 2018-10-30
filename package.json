@@ -4,6 +4,10 @@
   "description": "Display a hierarchy in the most amazing way ever!",
   "author": "miralemd",
   "license": "MIT",
+  "homepage": "https://github.com/miralemd/mekaarogram",
+  "bugs": {
+    "url": "https://github.com/miralemd/mekaarogram/issues"
+  },
   "repository": {
     "type": "git",
     "url": "git@github.com:miralemd/mekaarogram.git"
@@ -12,7 +16,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "webpack -p",
+    "build": "rm -rf dist && webpack -p",
     "build:debug": "webpack -d",
     "build:watch": "webpack -d --watch",
     "lint": "eslint src/js",
