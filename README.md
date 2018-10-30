@@ -87,6 +87,9 @@ Nodes can be expanded/collapsed by holding down SHIFT while clicking on the node
 
 On touch devices, simply swipe right/left to expand/collapse.
 
+## Download
+
+Go to [releases](https://github.com/miralemd/mekaarogram/releases) and download the file `mekaarogram-v<x.y.z>.zip` for the relevant release.
 
 ## Development
 
