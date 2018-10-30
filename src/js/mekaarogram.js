@@ -1147,7 +1147,7 @@ class Dendrogram {
 		this.$element.children().first();
 		let el = this.$element.children().length ? this.$element.children()[0] : this.$element[0];
 
-		this.$element.addClass( "mek-dendrogram" );
+		this.$element.addClass( "mekaarogram" );
 
 		if ( !globals.svgDefs ) {
 			let doc = new DOMParser().parseFromString( defs, "application/xml" );

@@ -1,10 +1,11 @@
 # Mekaarogram
 
-An extension used to display hierarchical structures from multiple dimensions.
+A Qlik Sense extension used to display hierarchical structures from multiple dimensions.
 
 ![Mekaarogram](docs/assets/mekaarogram.gif)
 
 ## Usage
+
 ### Property settings
 
 #### Data
@@ -39,7 +40,6 @@ A small set of emojis: `':)'`, `':|'`, `':('`, `':p'`, `':o'`, `';)'`
 Icons from the LUI icons set, prefix with `q-` followed by the ascii number representing the icon: `'q-33'`, `'q-239'` ...
 
 ![Qlik-bar](docs/assets/q_33.PNG) ![Qlik-favorite](docs/assets/q_239.PNG)
-
 
 ##### Measures
 
@@ -96,3 +96,7 @@ To create a production build:
 
 npm run build
 ```
+
+## License
+
+MIT

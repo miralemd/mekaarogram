@@ -8,7 +8,7 @@ var watch = require( "watch" );
 var yargs = require( "yargs" );
 var WebPackOnBuild = require( "on-build-webpack" );
 
-var name = "mek-dendogram";
+var name = "mekaarogram";
 var qname = name;
 var qnamejs = qname + ".js";
 var srcDir = path.resolve( __dirname, "src" );

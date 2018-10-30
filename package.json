@@ -1,8 +1,16 @@
 {
-  "name": "dendrogram",
+  "name": "mekaarogram",
   "version": "0.7.2",
-  "description": "",
-  "main": "src/mek-dendogram.js",
+  "description": "Display a hierarchy in the most amazing way ever!",
+  "author": "miralemd",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:miralemd/mekaarogram.git"
+  },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "webpack -p",
     "build:debug": "webpack -d",
@@ -10,13 +18,6 @@
     "lint": "eslint src/js",
     "lint:fix": "eslint src/js --fix"
   },
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@rd-git.qliktech.com/~mek/dendrogram.git"
-  },
-  "author": "Miralem Drek",
-  "private": true,
-  "license": "ISC",
   "devDependencies": {
     "babel-cli": "^6.14.0",
     "babel-core": "^6.14.0",
@@ -25,14 +26,12 @@
     "cpy": "^4.0.1",
     "css-loader": "^0.24.0",
     "eslint": "^3.4.0",
+    "node-sass": "^4.7.2",
     "on-build-webpack": "^0.1.0",
     "sass-loader": "^6.0.6",
     "svg-inline-loader": "^0.7.1",
     "watch": "^0.19.2",
     "webpack": "^1.13.2",
     "yargs": "^5.0.0"
-  },
-  "dependencies": {
-    "node-sass": "^4.7.2"
   }
 }
