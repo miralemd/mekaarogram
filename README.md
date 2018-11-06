@@ -21,25 +21,31 @@ Sets the color of each bubble.
 
 ###### Emoticon
 
-Sets a symbol to show inside each bubble.
+A symbol to show inside each bubble:
 
-**Single letter**
+- Single letter
 
-Any single letter you can think of: `'S'`, `'$'`, `'汉'` ...
+  Any single letter you can think of: `'S'`, `'$'`, `'汉'` ...
 
-![Letter S](docs/assets/letter.PNG) ![Letter $](docs/assets/letter_dollar.PNG) ![Letter 汉](docs/assets/letter_chinese.PNG)
+  ![Letter S](docs/assets/letter.PNG) ![Letter $](docs/assets/letter_dollar.PNG) ![Letter 汉](docs/assets/letter_chinese.PNG)
 
-**Emoji**
+- Emoji
 
-A small set of emojis: `':)'`, `':|'`, `':('`, `':p'`, `':o'`, `';)'`
+  A small set of emojis: `':)'`, `':|'`, `':('`, `':p'`, `':o'`, `';)'`
 
-![Smile](docs/assets/smile.PNG) ![Speechless](docs/assets/speechless.PNG) ![Sad](docs/assets/sad.PNG) ![Cheeky](docs/assets/cheeky.PNG) ![Surprised](docs/assets/surprised.PNG) ![Wink](docs/assets/wink.PNG)
+  ![Smile](docs/assets/smile.PNG) ![Speechless](docs/assets/speechless.PNG) ![Sad](docs/assets/sad.PNG) ![Cheeky](docs/assets/cheeky.PNG) ![Surprised](docs/assets/surprised.PNG) ![Wink](docs/assets/wink.PNG)
 
-**Qlik icons**
+- Qlik icons
 
-Icons from the LUI icons set, prefix with `q-` followed by the ascii number representing the icon: `'q-33'`, `'q-239'` ...
+  Icons from the LUI icons set, prefix with `q-` followed by the ascii number representing the icon: `'q-33'`, `'q-239'` ...
 
-![Qlik-bar](docs/assets/q_33.PNG) ![Qlik-favorite](docs/assets/q_239.PNG)
+  ![Qlik-bar](docs/assets/q_33.PNG) ![Qlik-favorite](docs/assets/q_239.PNG)
+
+- Material icons
+
+  Icons from Google's [Materical Icons set](http://google.github.io/material-design-icons/#icon-font-for-the-web).
+
+  Prefix with `m-` followed by the name: `'m-favorite'`, `'m-star'`, `'m-share'` ...
 
 ##### Measures
 
