@@ -1,6 +1,17 @@
 # Changelog
 
-## 0.8.0
+## 0.8.1 (2019-01-22)
+
+### General
+
+This release is mostly a refactor to use more modernized tools and libraries in order to fix transpilation issues. The extensions should now work better in Qlik Sense Desktop (Chrome 47) and IE 11.
+
+### Fixes
+
+- Use Chrome 47 and IE 11 as transpilation targets
+- Use modular d3 to avoid global conflicts
+
+## 0.8.0 (2018-10-30)
 
 **First public release** 🎉
 
