@@ -1,0 +1,37 @@
+{
+  "root": true,
+  "env": {
+    "browser": true
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  },
+  "extends": [
+    "airbnb-base"
+  ],
+  "rules": {
+    "max-len": 0,
+    "no-plusplus": 0,
+    "no-bitwise" : 0,
+    "no-underscore-dangle": 0,
+    "no-param-reassign": 0,
+    "no-nested-ternary": 0,
+    "prefer-destructuring": 0,
+    "no-multi-assign": 0,
+    "no-restricted-globals": 0,
+    "no-cond-assign": 0,
+    "no-mixed-operators": 0,
+    "class-methods-use-this": 0,
+    "import/no-extraneous-dependencies": [2, { "devDependencies": true }]
+  },
+  "plugins": [
+    "import"
+  ],
+  "settings": {
+    "import/resolver": {
+      "webpack": {
+        "config": "webpack.config.js"
+      }
+    }
+  }
+}

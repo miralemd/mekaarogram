@@ -102,8 +102,7 @@ Go to [releases](https://github.com/miralemd/mekaarogram/releases) and download 
 To create a production build:
 
 ```js
-
-npm run build
+yarn run build
 ```
 
 ## License
